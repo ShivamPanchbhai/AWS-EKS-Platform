@@ -5,7 +5,15 @@ terraform {
       version = ">= 5.0.0"
     }
   }
+
+  backend "s3" {
+    bucket = "shivam-terraform-state-3069"
+    key    = "ec2/terraform.tfstate"
+    region = "ap-south-1"
+  }
 }
+
+
 
 provider "aws" {
   region = "ap-south-1"

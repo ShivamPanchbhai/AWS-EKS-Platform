@@ -11,7 +11,7 @@ resource "aws_autoscaling_group" "docker_asg" {
 
   launch_template {
     id      = aws_launch_template.docker_lt.id
-    version = "aws_launch_template.docker_lt.latest_version"
+    version = "$Latest"
   }
 
   health_check_type         = "EC2"
@@ -29,7 +29,7 @@ resource "aws_autoscaling_group" "docker_asg" {
 
   tag {
     key                 = "Name"
-    value               = "docker-runtime-asg"
+    value               = "EC2-ASG"
     propagate_at_launch = true
   }
 }

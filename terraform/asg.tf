@@ -3,7 +3,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Get subnets in default VPC
+# Get all subnets in default VPC
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -27,4 +27,20 @@ resource "aws_autoscaling_group" "docker_asg" {
 
   health_check_type         = "EC2"
   health_check_grace_period = 60
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 50
+    }
+
+    triggers = ["launch_template"]
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "EC2-ASG"
+    propagate_at_launch = true
+  }
 }

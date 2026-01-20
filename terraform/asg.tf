@@ -1,3 +1,16 @@
+# Get default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+# Get subnets in default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
 resource "aws_autoscaling_group" "docker_asg" {
   name = "EC2-ASG"
 
@@ -5,9 +18,7 @@ resource "aws_autoscaling_group" "docker_asg" {
   max_size         = 2
   desired_capacity = 2
 
-  vpc_zone_identifier = [
-    "subnet-076bfaf1ee40ec8fd"
-  ]
+  vpc_zone_identifier = data.aws_subnets.default.ids
 
   launch_template {
     id      = aws_launch_template.docker_lt.id
@@ -16,20 +27,4 @@ resource "aws_autoscaling_group" "docker_asg" {
 
   health_check_type         = "EC2"
   health_check_grace_period = 60
-
-  instance_refresh {
-    strategy = "Rolling"
-
-    preferences {
-      min_healthy_percentage = 50
-    }
-
-    triggers = ["launch_template"]
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "EC2-ASG"
-    propagate_at_launch = true
-  }
 }

@@ -1,4 +1,5 @@
 Base
+
 • Protocol: HTTP
 • Format: JSON
 • Auth: IAM role (keyless)

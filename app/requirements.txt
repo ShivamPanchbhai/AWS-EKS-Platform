@@ -1,1 +1,3 @@
-
+• fastapi
+• uvicorn
+• boto3

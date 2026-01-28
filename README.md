@@ -14,8 +14,10 @@
 
 	What the service accepts
 	
-  • HTTPS request
+    • HTTPS request
+	
 	• ECG image (file)
+	
 	• Metadata
 	 – patient_name
 	 – MRN
@@ -25,6 +27,7 @@
 3) What it returns
 	
 	• status: stored
+	
 	• record_id: abc123
 	
 4) What it does not do

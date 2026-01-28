@@ -20,3 +20,5 @@ EXPOSE 8000
 
 # 0.0.0.0 = accept traffic from outside container
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# CMD -> When this container starts, run this process

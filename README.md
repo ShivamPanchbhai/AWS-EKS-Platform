@@ -36,11 +36,14 @@
 
 5) Endpoint
 
-   • POST /ecg
+ POST /ecg
 
 Request
+
 • Type: multipart/form-data
+
 • Fields
+
 – ecg_file (image)
 – MRN (required)
 – patient_name (optional)

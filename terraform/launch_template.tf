@@ -1,14 +1,3 @@
-# Fetch default security group of the VPC
-data "aws_security_group" "default" {
-  name   = "default"
-  vpc_id = data.aws_subnet.selected.vpc_id
-}
-
-# Fetch subnet to get VPC ID
-data "aws_subnet" "selected" {
-  id = "subnet-076bfaf1ee40ec8fd"
-}
-
 resource "aws_launch_template" "docker_lt" {
   name_prefix   = "docker-runtime-"
   image_id      = data.aws_ami.amazon_linux.id
@@ -21,6 +10,16 @@ resource "aws_launch_template" "docker_lt" {
   vpc_security_group_ids = [
     data.aws_security_group.default.id
   ]
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size           = 8
+      volume_type           = "gp3"
+      delete_on_termination = true
+    }
+  }
 
   user_data = base64encode(<<-EOF
     #!/bin/bash

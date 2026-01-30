@@ -7,10 +7,6 @@ resource "aws_launch_template" "docker_lt" {
     name = "ec2-ssm-role"
   }
 
-  vpc_security_group_ids = [
-    data.aws_security_group.default.id
-  ]
-
   block_device_mappings {
     device_name = "/dev/xvda"
 

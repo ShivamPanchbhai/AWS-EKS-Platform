@@ -1,39 +1,68 @@
-name: Terraform EC2 Provision
+name: Infra + App Deploy (ECR + ASG)
 
 on:
   push:
     branches:
       - main
 
+# Required for OIDC auth to AWS
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Pull repo code (Dockerfile + Terraform)
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Authenticate to AWS using OIDC (no keys)
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::306991549269:role/github-actions-deploy-role
           aws-region: ap-south-1
 
+      # 3. Login to ECR so Docker can push images
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 \
+          | docker login --username AWS --password-stdin 306991549269.dkr.ecr.ap-south-1.amazonaws.com
+
+      # 4. Build Docker image for the app
+      - name: Build Docker image
+        run: |
+          docker build -t ehr-service .
+
+      # 5. Tag image with ECR repo URI
+      - name: Tag Docker image
+        run: |
+          docker tag ehr-service:latest \
+          306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:latest
+
+      # 6. Push image to ECR
+      - name: Push Docker image to ECR
+        run: |
+          docker push 306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:latest
+
+      # 7. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # 8. Terraform init (infra state)
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
 
+      # 9. Terraform apply (infra changes)
       - name: Terraform Apply
         run: terraform apply -auto-approve
         working-directory: terraform
 
+      # 10. Trigger ASG refresh so new EC2s pull latest image
       - name: Start ASG Instance Refresh
         run: |
           aws autoscaling start-instance-refresh \

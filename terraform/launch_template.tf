@@ -23,7 +23,7 @@ set -e
 
 # Update and install required packages
 dnf update -y
-dnf install -y docker amazon-ssm-agent
+dnf install -y docker amazon-ssm-agent awscli
 
 # Start services
 systemctl enable docker

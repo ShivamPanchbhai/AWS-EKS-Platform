@@ -11,8 +11,8 @@ data "aws_subnets" "default" {
   }
 }
 
-data "aws_lb_target_group" "alb" {
-  name = "ALB"
+data "aws_lb_target_group" "ContainerTG" {
+  name = "ContainerTG"
 }
 
 resource "aws_autoscaling_group" "docker_asg" {
@@ -25,7 +25,7 @@ resource "aws_autoscaling_group" "docker_asg" {
   vpc_zone_identifier = data.aws_subnets.default.ids
 
  target_group_arns = [
-    data.aws_lb_target_group.alb.arn
+    data.aws_lb_target_group.ContainerTG.arn
   ]
 
   launch_template {

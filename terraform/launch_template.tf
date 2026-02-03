@@ -17,7 +17,7 @@ resource "aws_launch_template" "docker_lt" {
     }
   }
 
- user_data = base64encode(<<-EOF
+user_data = base64encode(<<-EOF
 #!/bin/bash
 set -e
 
@@ -41,14 +41,14 @@ aws ecr get-login-password --region ap-south-1 \
   | docker login --username AWS --password-stdin 306991549269.dkr.ecr.ap-south-1.amazonaws.com
 
 # Pull latest app image
-docker pull 306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:latest
+docker pull 306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:${var.image_tag}
 
 # Run container
 docker rm -f ehr || true
 docker run -d \
   --name ehr \
   -p 8000:8000 \
-  306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:latest
+  306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service:${var.image_tag}
 EOF
 )
 

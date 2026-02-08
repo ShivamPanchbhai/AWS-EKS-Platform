@@ -1,5 +1,26 @@
+resource "aws_security_group" "ec2_sg" {
+  name   = "${var.service_name}-ec2-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    security_groups = [var.alb_security_group_id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 # Launch Template for EC2 instances that will run Docker containers
 resource "aws_launch_template" "docker_lt" {
+
+vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 
   # Prefix for launch template name (AWS adds random suffix)
   name_prefix = "docker-runtime-"

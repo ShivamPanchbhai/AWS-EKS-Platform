@@ -70,16 +70,16 @@ module "ecr" {
 
 # Creates EC2 compute infrastructure:
 # - Launch Template
-# - (Auto Scaling Group will be added next)
-#
+
 # The module receives:
+
 # - AMI ID from root (dynamic lookup)
 # - Docker image tag from CI/CD (Git commit SHA)
-#
+
 # Any change to image_tag results in:
 # - New Launch Template version
 # - ASG instance refresh
-############################################
+
 module "compute" {
   source = "./modules/compute"
 
@@ -88,5 +88,12 @@ module "compute" {
 
   # Docker image tag (Git commit SHA) injected by CI/CD
   image_tag = var.image_tag
+}
+
+# Subnets where ASG should launch instances
+  subnet_ids = data.aws_subnets.default.ids
+
+  # ALB Target Group ARN
+  target_group_arn = data.aws_lb_target_group.ContainerTG.arn
 }
 

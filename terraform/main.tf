@@ -92,6 +92,22 @@ module "compute" {
   subnet_ids = data.aws_subnets.default.ids
 
   # ALB Target Group ARN
-  target_group_arn = data.aws_lb_target_group.ContainerTG.arn
+  target_group_arn = target_group_arn = module.alb.target_group_arn
 }
+
+############################################
+                 # ALB
+############################################
+# Creates:
+# - Application Load Balancer
+# - Target Group
+############################################
+module "alb" {
+  source = "./modules/alb"
+
+  vpc_id       = data.aws_vpc.default.id
+  subnet_ids   = data.aws_subnets.default.ids
+  service_name = "ehr"
+}
+
 

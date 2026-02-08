@@ -86,7 +86,6 @@ module "compute" {
 
   # Docker image tag (Git commit SHA) injected by CI/CD
   image_tag = var.image_tag
-}
 
 # Subnets where ASG should launch instances
   subnet_ids = data.aws_subnets.default.ids

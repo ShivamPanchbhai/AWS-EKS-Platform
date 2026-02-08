@@ -1,6 +1,7 @@
 ############################################
-# ACM Certificate for HTTPS
+# ACM Certificate (DNS validated)
 ############################################
+
 resource "aws_acm_certificate" "this" {
   domain_name       = "shivam.store"
   validation_method = "DNS"
@@ -11,8 +12,18 @@ resource "aws_acm_certificate" "this" {
 }
 
 ############################################
-# DNS validation records in Route53
+# Route53 hosted zone lookup
 ############################################
+
+data "aws_route53_zone" "this" {
+  name         = "shivam.store"
+  private_zone = false
+}
+
+############################################
+# DNS records for ACM validation
+############################################
+
 resource "aws_route53_record" "acm_validation" {
   for_each = {
     for dvo in aws_acm_certificate.this.domain_validation_options :
@@ -26,13 +37,14 @@ resource "aws_route53_record" "acm_validation" {
   zone_id = data.aws_route53_zone.this.zone_id
   name    = each.value.name
   type    = each.value.type
-  records = [each.value.record]
   ttl     = 60
+  records = [each.value.record]
 }
 
 ############################################
 # Wait for certificate validation
 ############################################
+
 resource "aws_acm_certificate_validation" "this" {
   certificate_arn         = aws_acm_certificate.this.arn
   validation_record_fqdns = [

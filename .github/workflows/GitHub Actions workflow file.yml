@@ -57,11 +57,6 @@ jobs:
         run: terraform init
         working-directory: terraform
 
-      # 8.5 Import existing ECR repository (one-time)
-      - name: Import existing ECR into Terraform state
-        run: terraform import module.ecr.aws_ecr_repository.ehr ehr-service
-        working-directory: terraform
-
       # 9. Terraform apply (infra changes)
       - name: Terraform Apply
         run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}"

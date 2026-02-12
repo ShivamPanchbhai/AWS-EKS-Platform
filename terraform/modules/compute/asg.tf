@@ -17,6 +17,7 @@ resource "aws_autoscaling_group" "this" {
 
   # Subnets passed from root (do NOT assume default VPC)
   vpc_zone_identifier = var.subnet_ids
+  # If var.subnet_ids contains subnets from different Availability Zones Then ASG will automatically distribute instances across those AZs.
 
   ######################################################
   # Attach ALB Target Group

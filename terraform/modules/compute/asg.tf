@@ -40,7 +40,7 @@ resource "aws_autoscaling_group" "this" {
   # ELB type enables ALB health check feedback
   ######################################################
 
-  health_check_type         = "ELB"
+  health_check_type         = "ELB" # ASG listens to ALB health state
   health_check_grace_period = 60
 
   ######################################################

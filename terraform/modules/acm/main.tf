@@ -1,14 +1,4 @@
 ############################################
-# Lookup existing public Route53 hosted zone
-# This assumes hosted zone is already created manually
-############################################
-
-data "aws_route53_zone" "this" {
-  name         = var.domain_name
-  private_zone = false
-}
-
-############################################
 # Request ACM Certificate
 # Domain name dynamically derived from hosted zone
 ############################################

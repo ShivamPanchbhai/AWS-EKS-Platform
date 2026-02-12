@@ -122,13 +122,14 @@ module "compute" {
 # - Application Load Balancer
 # - Target Group
 ############################################
-module "alb" {
-  source = "./modules/alb"
 
-  vpc_id           = data.aws_vpc.default.id
-  subnet_ids       = data.aws_subnets.default.ids
-  service_name     = "ehr"
-  certificate_arn  = aws_acm_certificate_validation.this.certificate_arn
+module "alb" {
+  source          = "./modules/alb"
+  service_name    = "ehr"
+  vpc_id          = var.vpc_id
+  subnet_ids      = var.public_subnet_ids
+  certificate_arn = module.acm.certificate_arn   # ACM output used here
+  domain_name     = "shivam.store"
 }
 
 #############################

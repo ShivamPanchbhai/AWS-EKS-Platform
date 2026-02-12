@@ -20,11 +20,11 @@ resource "aws_autoscaling_group" "this" {
   # If var.subnet_ids contains subnets from different Availability Zones Then ASG will automatically distribute instances across those AZs.
 
   ######################################################
-  # Attach ALB Target Group
+  # Attach ASG to Target Group
   ######################################################
 
   # Target group ARN passed from ALB module
-  target_group_arns = [var.target_group_arn]
+  target_group_arns = [var.target_group_arn] # This attaches ASG → Target Group.
 
   ######################################################
   # Launch Template Configuration

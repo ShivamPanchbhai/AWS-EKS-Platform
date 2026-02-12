@@ -1,3 +1,12 @@
+########################################################
+# ROUTE53 HOSTED ZONE LOOKUP
+########################################################
+
+data "aws_route53_zone" "this" {
+  name         = var.domain_name
+  private_zone = false
+}
+
 ############################################
 # Request ACM Certificate
 # Domain name dynamically derived from hosted zone

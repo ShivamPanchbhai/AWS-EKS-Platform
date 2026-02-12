@@ -56,11 +56,12 @@ resource "aws_lb_target_group" "this" {
   vpc_id  = var.vpc_id
 
   health_check {
-    path                = "/health"
-    matcher             = "200"
-    interval            = 30
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+    path                = "/health" # ALB will send an HTTP request to /health Because your target group is port = 8000 & protocol = HTTP
+    matcher             = "200"     # If your /health endpoint returns {"status": "ok"} with HTTP 200 → it is considered healthy.
+    interval            = 30        # Every 30 seconds, ALB sends a health check request to each instance.
+    healthy_threshold   = 2         # If ALB gets 2 consecutive successful checks, instance becomes Healthy. So roughly 60 seconds to mark healthy.
+    unhealthy_threshold = 2         # If ALB gets 2 consecutive failures, instance becomes Unhealthy. So roughly 60 seconds to mark unhealthy.
+   
   }
 }
 

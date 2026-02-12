@@ -34,8 +34,9 @@ vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   # IAM role attached to EC2
   # Used for ECR pull + SSM access
   iam_instance_profile {
-    name = "ec2-ssm-role"
-  }
+  name = var.instance_profile_name
+}
+
 
   # Root volume configuration
   block_device_mappings {

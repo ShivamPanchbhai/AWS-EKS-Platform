@@ -1,6 +1,8 @@
 ############################################
-        # Security Group for ALB
+# Security Group for ALB
+# Allows public HTTP and HTTPS traffic
 ############################################
+
 resource "aws_security_group" "alb_sg" {
   name        = "${var.service_name}-alb-sg"
   description = "Allow HTTP and HTTPS to ALB"
@@ -28,8 +30,10 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 ############################################
-      # Application Load Balancer
+# Application Load Balancer
+# Public, multi-AZ, internet-facing
 ############################################
+
 resource "aws_lb" "this" {
   name               = "${var.service_name}-alb"
   internal           = false
@@ -41,8 +45,10 @@ resource "aws_lb" "this" {
 }
 
 ############################################
-# Target Group for EC2 (FastAPI via nginx)
+# Target Group 
+# Traffic forwarded to EC2 instances (nginx → FastAPI)
 ############################################
+
 resource "aws_lb_target_group" "this" {
   name     = "${var.service_name}-tg"
   port     = 8000
@@ -59,8 +65,10 @@ resource "aws_lb_target_group" "this" {
 }
 
 ############################################
-        # ALB Listener (HTTP)
+# HTTP Listener
+# Redirects all HTTP traffic to HTTPS
 ############################################
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
@@ -78,14 +86,15 @@ resource "aws_lb_listener" "http" {
 }
 
 ############################################
-# ALB Listener (HTTPS)
+# HTTPS LISTENER
+# Uses ACM certificate output from ACM module
 ############################################
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.this.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.certificate_arn
+  certificate_arn   = var.certificate_arn # This comes from acm output file
 
   default_action {
     type             = "forward"
@@ -93,4 +102,28 @@ resource "aws_lb_listener" "https" {
   }
 }
 
+########################################################
+# ROUTE53 HOSTED ZONE LOOKUP
+########################################################
 
+data "aws_route53_zone" "this" {
+  name         = var.domain_name
+  private_zone = false
+}
+
+########################################################
+# PUBLIC A RECORD (ALIAS → ALB)
+# Maps domain to the created ALB
+########################################################
+
+resource "aws_route53_record" "alb_alias" {
+  zone_id = data.aws_route53_zone.this.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.this.dns_name   # Selects created ALB
+    zone_id                = aws_lb.this.zone_id   # Required for alias
+    evaluate_target_health = true
+  }
+}

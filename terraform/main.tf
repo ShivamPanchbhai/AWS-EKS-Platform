@@ -130,5 +130,13 @@ module "alb" {
   certificate_arn  = aws_acm_certificate_validation.this.certificate_arn
 }
 
+#############################
+            # IAM
+#############################
+
+module "iam" {
+  source = "./modules/iam"
+}
+
 
 

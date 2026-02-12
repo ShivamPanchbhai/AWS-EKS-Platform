@@ -1,18 +1,16 @@
-############################################
-# ACM Certificate (DNS validated)
-############################################
+########################################################
+# Input Variable
+# Domain name passed from root module
+########################################################
 
-resource "aws_acm_certificate" "this" {
-  domain_name       = "shivam.store"
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
+variable "domain_name" {
+  description = "Primary domain for HTTPS certificate"
+  type        = string
 }
 
 ############################################
-# Route53 hosted zone lookup
+# Lookup existing public Route53 hosted zone
+# This assumes hosted zone is already created manually
 ############################################
 
 data "aws_route53_zone" "this" {
@@ -21,7 +19,26 @@ data "aws_route53_zone" "this" {
 }
 
 ############################################
-# DNS records for ACM validation
+# Request ACM Certificate
+# Domain name dynamically derived from hosted zone
+############################################
+
+resource "aws_acm_certificate" "this" {
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    # Prevent downtime during certificate replacement
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "Primary HTTPS Certificate"
+  }
+}
+
+############################################
+# Create CNAME record for DNS validation 
 ############################################
 
 resource "aws_route53_record" "acm_validation" {
@@ -42,7 +59,8 @@ resource "aws_route53_record" "acm_validation" {
 }
 
 ############################################
-# Wait for certificate validation
+# Wait until ACM certificate is validated
+# Ensures ALB only receives valid certificate ARN
 ############################################
 
 resource "aws_acm_certificate_validation" "this" {

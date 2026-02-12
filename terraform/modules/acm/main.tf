@@ -14,7 +14,7 @@ variable "domain_name" {
 ############################################
 
 data "aws_route53_zone" "this" {
-  name         = "shivam.store"
+  name         = var.domain_name
   private_zone = false
 }
 

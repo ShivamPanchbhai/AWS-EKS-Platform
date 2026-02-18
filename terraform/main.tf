@@ -1,9 +1,8 @@
-############################################
-# Terraform core configuration
-############################################
-terraform {
+############################################################
+# TERRAFORM CORE CONFIGURATION
+############################################################
 
-  # Define required providers and versions
+terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -11,34 +10,35 @@ terraform {
     }
   }
 
-  # Remote backend for Terraform state
-  # State is stored centrally in S3
+  ##########################################################
+  # Remote Backend (Created via Bootstrap Layer)
+  # Stores Terraform state in S3
+  ##########################################################
   backend "s3" {
-  bucket = "shivam-terraform-state-306991549269"
-  key    = "ec2/terraform.tfstate"
-  region = "ap-south-1"
-}
+    bucket = "shivam-terraform-state-306991549269"
+    key    = "ec2/terraform.tfstate"
+    region = "ap-south-1"
+  }
 }
 
+############################################################
+# AWS PROVIDER
+############################################################
 
-############################################
-# AWS provider configuration
-############################################
 provider "aws" {
-  # All resources will be created in this region
-  region = "ap-south-1"
+  region = var.region
 }
 
-############################################
-# Networking (default VPC + subnets)
-############################################
+############################################################
+# NETWORKING (Using Default VPC for Simplicity)
+############################################################
 
-# Default VPC
+# Fetch default VPC
 data "aws_vpc" "default" {
   default = true
 }
 
-# All subnets in the default VPC
+# Fetch all subnets in default VPC
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -46,110 +46,121 @@ data "aws_subnets" "default" {
   }
 }
 
-############################################
-# Data sources
-############################################
+############################################################
+# AMI LOOKUP (Amazon Linux 2023)
+############################################################
 
-# Lookup the latest Amazon Linux 2023 AMI
-# This is used by the Launch Template later
 data "aws_ami" "amazon_linux" {
-
-  # Always fetch the most recent matching AMI
   most_recent = true
+  owners      = ["amazon"]
 
-  # Official Amazon-owned AMIs only
-  owners = ["amazon"]
-
-  # Filter to Amazon Linux 2023 x86_64 images
   filter {
     name   = "name"
     values = ["al2023-ami-*-x86_64"]
   }
 }
 
-############################################
-               # Modules
-############################################
+############################################################
+# MODULE: ECR (Container Registry)
+############################################################
 
-############################################
-               # ECR
-############################################
-
-# Creates an immutable ECR repository for Docker images
+# Creates:
+# - Immutable ECR repository
+# - Lifecycle policies
+# - Scan on push
 module "ecr" {
   source = "./modules/ecr"
 
-repository_name = "ehr-service"
+  repository_name = "ehr-service"
 }
 
-############################################
-             # Compute
-############################################
+############################################################
+# MODULE: IAM (EC2 Runtime Role)
+############################################################
 
-# Creates EC2 compute infrastructure:
-# - Launch Template
-
-# The module receives:
-
-# - AMI ID from root (dynamic lookup)
-# - Docker image tag from CI/CD (Git commit SHA)
-
-# Any change to image_tag results in:
-# - New Launch Template version
-# - ASG instance refresh
-
-module "compute" {
-  source = "./modules/compute"
-
-  # Amazon Linux AMI passed from root data source
-  ami_id = data.aws_ami.amazon_linux.id
-
-  # Docker image tag (Git commit SHA) injected by CI/CD
-  image_tag = var.image_tag
-
-# Subnets where ASG should launch instances
-  subnet_ids = data.aws_subnets.default.ids
-
-  # ALB Target Group ARN
-  target_group_arn = module.alb.target_group_arn
-  alb_security_group_id = module.alb.alb_security_group_id
-  vpc_id = data.aws_vpc.default.id
-  service_name = "ehr"
-  instance_profile_name = module.iam.instance_profile_name
-  region        = var.region
-  repository_url = module.ecr.repository_url
-}
-
-############################################
-                 # ALB
-############################################
 # Creates:
-# - Application Load Balancer
-# - Target Group
-############################################
-
-module "alb" {
-  source          = "./modules/alb"
-  service_name    = "ehr"
-  vpc_id          = var.vpc_id
-  subnet_ids      = var.public_subnet_ids
-  certificate_arn = module.acm.certificate_arn   # ACM output used here
-  domain_name     = "shivam.store"
-}
-
-#############################
-            # IAM
-#############################
-
+# - EC2 runtime IAM role
+# - Instance profile
+# - ECR pull permissions
+# - SSM permissions
 module "iam" {
   source = "./modules/iam"
 }
 
-#############################
-            # ACM
-#############################
+############################################################
+# MODULE: ACM (SSL Certificate)
+############################################################
+
+# Creates:
+# - ACM certificate
+# - DNS validation records
 module "acm" {
   source      = "./modules/acm"
   domain_name = "shivam.store"
 }
 
+############################################################
+# MODULE: ALB (Ingress Layer)
+############################################################
+
+# Creates:
+# - Application Load Balancer
+# - Target group
+# - HTTPS listener
+# - Route53 alias record
+module "alb" {
+  source = "./modules/alb"
+
+  service_name = "ehr"
+  vpc_id       = data.aws_vpc.default.id
+  subnet_ids   = data.aws_subnets.default.ids
+
+  certificate_arn = module.acm.certificate_arn
+  domain_name     = "shivam.store"
+}
+
+############################################################
+# MODULE: COMPUTE (Runtime Layer)
+############################################################
+
+# Creates:
+# - Launch Template
+# - Auto Scaling Group
+# - EC2 security group
+#
+# Flow:
+# CI/CD passes image_tag
+# New tag → new LT version → ASG refresh
+module "compute" {
+  source = "./modules/compute"
+
+  ##########################################################
+  # Core runtime configuration
+  ##########################################################
+  ami_id     = data.aws_ami.amazon_linux.id
+  image_tag  = var.image_tag
+  region     = var.region
+
+  ##########################################################
+  # Networking
+  ##########################################################
+  vpc_id     = data.aws_vpc.default.id
+  subnet_ids = data.aws_subnets.default.ids
+
+  ##########################################################
+  # Ingress integration
+  ##########################################################
+  target_group_arn      = module.alb.target_group_arn
+  alb_security_group_id = module.alb.alb_security_group_id
+
+  ##########################################################
+  # IAM & ECR
+  ##########################################################
+  instance_profile_name = module.iam.instance_profile_name
+  repository_url        = module.ecr.repository_url
+
+  ##########################################################
+  # Logical service name
+  ##########################################################
+  service_name = "ehr"
+}

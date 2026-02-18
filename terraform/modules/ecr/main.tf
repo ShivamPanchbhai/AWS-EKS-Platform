@@ -30,7 +30,7 @@ resource "aws_ecr_lifecycle_policy" "policy" {
         rulePriority = 1
         description  = "Keep only last 5 images"
         selection = {
-          tagStatus     = "tagged"
+          tagStatus     = "any"
           countType     = "imageCountMoreThan"
           countNumber   = 5
         }
@@ -44,7 +44,7 @@ resource "aws_ecr_lifecycle_policy" "policy" {
         rulePriority = 2
         description  = "Expire images older than 30 days"
         selection = {
-          tagStatus   = "tagged"
+          tagStatus   = "any"
           countType   = "sinceImagePushed"
           countUnit   = "days"
           countNumber = 30

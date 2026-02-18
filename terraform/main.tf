@@ -78,6 +78,8 @@ data "aws_ami" "amazon_linux" {
 # Creates an immutable ECR repository for Docker images
 module "ecr" {
   source = "./modules/ecr"
+
+repository_name = "ehr-service"
 }
 
 ############################################

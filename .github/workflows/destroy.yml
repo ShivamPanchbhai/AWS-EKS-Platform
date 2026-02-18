@@ -68,5 +68,5 @@ jobs:
       # enforced manual confirmation above.
       ######################################################
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+        run: terraform destroy -auto-approve -var="image_tag=dummy"
         working-directory: terraform

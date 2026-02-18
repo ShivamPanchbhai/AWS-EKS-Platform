@@ -37,21 +37,7 @@ resource "aws_ecr_lifecycle_policy" "policy" {
         action = {
           type = "expire"
         }
-      },
-
-      # Rule 2: Expire images older than 30 days
-      {
-        rulePriority = 2
-        description  = "Expire images older than 30 days"
-        selection = {
-          tagStatus   = "untagged"
-          countType   = "sinceImagePushed"
-          countUnit   = "days"
-          countNumber = 30
-        }
-        action = {
-          type = "expire"
-        }
+      }
       }
     ]
   })

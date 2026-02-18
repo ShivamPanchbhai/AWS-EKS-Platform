@@ -14,11 +14,11 @@ terraform {
   # Remote backend for Terraform state
   # State is stored centrally in S3
   backend "s3" {
-    bucket = "shivam-terraform-state-3069"
-    key    = "ec2/terraform.tfstate"
-    region = "ap-south-1"
-  }
+  bucket = "shivam-terraform-state-306991549269"
+  key    = "ec2/terraform.tfstate"
+  region = "ap-south-1"
 }
+
 
 ############################################
 # AWS provider configuration

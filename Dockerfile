@@ -23,3 +23,4 @@ EXPOSE 8000
 
 # start uvicorn on 8001 and nginx on 8000
 CMD uvicorn main:app --host 127.0.0.1 --port 8001 & nginx -g 'daemon off;'
+

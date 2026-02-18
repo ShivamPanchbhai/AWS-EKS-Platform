@@ -114,6 +114,8 @@ module "compute" {
   vpc_id = data.aws_vpc.default.id
   service_name = "ehr"
   instance_profile_name = module.iam.instance_profile_name
+  region        = var.region
+  repository_url = module.ecr.repository_url
 }
 
 ############################################

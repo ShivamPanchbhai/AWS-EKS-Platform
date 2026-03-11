@@ -1,54 +1,152 @@
 # AWS CI/CD Infrastructure – Cloud-Native Immutable Deployment (Oracle Project)
 
-This project reflects the architecture and automation patterns I implemented at Oracle while working as a DevOps Engineer on the CAMM7 platform.
+This project reflects the architecture and automation patterns I implemented at Oracle while working as a Platform Engineer on the CAMM7 platform.
 
-I was responsible for designing and automating end-to-end AWS infrastructure using Terraform and GitHub Actions with OIDC authentication, deploying a containerized backend service behind an Application Load Balancer with enforced HTTPS and Auto Scaling.
+I designed and automated end-to-end AWS infrastructure using Terraform and GitHub Actions with OIDC authentication, deploying a containerized backend service behind an Application Load Balancer with enforced HTTPS and Auto Scaling.
 
-The system followed immutable infrastructure principles, secure IAM boundaries, and Git-driven deployments.
+The system follows immutable infrastructure principles, secure IAM trust boundaries, and fully Git-driven deployments.
 
 ---
 
-## Architecture Overview
+# Architecture Overview
 
-The platform was divided into three primary layers:
+The platform is structured into **five architectural layers**:
 
-### 1. Infrastructure Layer (Terraform – Modular Design)
+1. Bootstrap Layer  
+2. Infrastructure Layer  
+3. CI/CD Layer  
+4. Runtime Layer  
+5. Operational Layer  
 
-Infrastructure was provisioned using modular Terraform with clear separation of concerns:
+---
+
+# Architecture Diagram
+Client
+│
+▼
+Route53 (DNS)
+│
+▼
+Application Load Balancer (HTTPS)
+│
+▼
+Target Group
+│
+▼
+Auto Scaling Group (EC2)
+│
+▼
+Docker Container
+│
+▼
+FastAPI Application
+
+
+---
+
+# Repository Structure
+.
+├── bootstrap/
+│ └── bootstrap.tf
+│
+├── terraform/
+│ ├── modules/
+│ │ ├── ecr/
+│ │ ├── iam/
+│ │ ├── acm/
+│ │ ├── alb/
+│ │ └── compute/
+│ └── main.tf
+├── app/
+│ ├── Dockerfile
+│ ├── main.py
+│ └── requirements.txt
+│
+└── .github/
+└── workflows/
+├── infra.yml
+├── app-deploy.yml
+└── destroy.yml
+
+
+
+---
+
+# 1. Bootstrap Layer (Foundation)
+
+This layer establishes the **trust boundary and Terraform backend** required before CI/CD pipelines can run.
+
+Provisioned components:
+
+- GitHub **OIDC provider**
+- **Deploy IAM role** assumed by GitHub Actions
+- **S3 backend bucket** for Terraform state storage
+
+Security characteristics:
+
+- No static AWS credentials required
+- GitHub workflows authenticate using **OIDC temporary tokens**
+- Terraform state stored remotely with **versioning enabled**
+- Public access fully blocked on the backend bucket
+
+This bootstrap stack is executed **once manually** (via CloudShell) and then all infrastructure changes are handled through CI/CD.
+
+---
+
+# 2. Infrastructure Layer (Terraform – Modular Design)
+
+Infrastructure is provisioned using **modular Terraform architecture** with clear separation of concerns.
 
 Modules implemented:
 
-- ECR (immutable image registry with scan-on-push)
-- IAM (runtime EC2 role + instance profile)
-- ACM (SSL certificate with DNS validation)
-- ALB (HTTPS ingress + target group)
-- Compute (Launch Template + Auto Scaling Group)
+- **ECR** – immutable container registry with scan-on-push
+- **IAM** – runtime EC2 role and instance profile
+- **ACM** – TLS certificates with DNS validation
+- **ALB** – HTTPS ingress with target groups
+- **Compute** – Launch Template and Auto Scaling Group
 
 Key architectural characteristics:
 
 - Remote S3 backend with versioning enabled
-- Launch Templates with IMDSv2 enforced
-- Auto Scaling Group (minimum 2 instances, multi-AZ)
-- Rolling instance refresh on image updates
-- HTTP to HTTPS redirect at ALB level
+- Launch Templates with **IMDSv2 enforced**
+- Auto Scaling Group (**minimum 2 instances, multi-AZ**)
+- Target tracking auto scaling policy
+- Rolling instance refresh for immutable deployments
+- HTTP → HTTPS redirect at ALB
 - Route53 alias record integration
 - Separate security groups for ALB and EC2
 
 ---
 
-### 2. CI/CD Layer (GitHub Actions + OIDC)
+# 3. CI/CD Layer (GitHub Actions + OIDC)
 
-Deployments were fully Git-driven.
+Deployments are fully **Git-driven** using GitHub Actions workflows.
+
+Two separate pipelines were designed:
+
+### Infrastructure Pipeline
+
+Triggered when files in **terraform/** change.
+
+Responsibilities:
+
+- Authenticate to AWS using **OIDC**
+- Initialize Terraform backend
+- Apply infrastructure changes
+
+### Application Pipeline
+
+Triggered when files in **app/** change.
 
 Pipeline flow:
 
 1. Code push to main branch
-2. GitHub Actions authenticates to AWS using OIDC
-3. Terraform initializes and applies infrastructure
-4. Docker image is built
-5. Image is tagged using Git commit SHA
-6. Image is pushed to Amazon ECR
-7. Auto Scaling Group performs rolling instance refresh
+2. GitHub Actions authenticates to AWS via OIDC
+3. Docker image is built
+4. Image tagged using **Git commit SHA**
+5. Image pushed to **Amazon ECR**
+6. Terraform updates Launch Template image_tag
+7. **Auto Scaling Group performs rolling instance refresh**
 
 Security controls implemented:
 
@@ -57,20 +155,22 @@ Security controls implemented:
 - Separate deploy role and runtime role
 - Least-privilege IAM enforcement
 
-Each deployment produced a deterministic and traceable release using commit SHA tagging.
+Each deployment produces a **deterministic and traceable release**.
 
 ---
 
-### 3. Runtime Layer (Containerized Service)
+# 4. Runtime Layer (Containerized Service)
 
-Each EC2 instance bootstrapped automatically using user-data scripts:
+Each EC2 instance bootstraps automatically using **user-data scripts**.
 
-- Installed Docker
-- Logged into ECR via IAM role
-- Pulled image using commit SHA
-- Ran container with restart policy
-- Enabled AWS SSM for remote management
-- Disabled SSH access entirely
+Instance initialization performs:
+
+- Docker installation
+- ECR authentication using IAM role
+- Pull container image using commit SHA
+- Start container with restart policy
+- Enable AWS SSM for remote management
+- Disable SSH access
 
 Inside the container:
 
@@ -80,90 +180,50 @@ Inside the container:
 
 ---
 
-## Traffic Flow
+# 5. Operational Layer
+
+This layer manages **infrastructure lifecycle operations**.
+
+Implemented controls:
+
+- Dedicated **destroy workflow**
+- Manual trigger via GitHub `workflow_dispatch`
+- Explicit confirmation required before executing `terraform destroy`
+
+This enables safe **full-stack teardown** for cost control while preventing accidental deletion.
+
+---
+
+# Traffic Flow
 
 Client → HTTPS → ALB → HTTP → EC2 → Docker Container → FastAPI Service
 
-Detailed request lifecycle:
+Detailed lifecycle:
 
 - Client establishes TLS connection with ALB
 - HTTPS terminates at ALB
 - ALB forwards HTTP traffic to target group
-- EC2 receives traffic via internal security group
-- nginx forwards request to FastAPI service
-- Service validates and stores ECG data
+- EC2 instance receives request
+- nginx forwards request to FastAPI
+- Service processes and stores ECG data
 
-EC2 instances were never directly exposed to the internet.
-
----
-
-## Service Endpoint
-
-POST /ecg
-
-Content-Type: multipart/form-data
-
-Fields:
-
-- ecg_file (required)
-- MRN (required)
-- patient_name (optional)
-- DOB (optional)
-- timestamp (required)
-
-Response:
-
-{
-  "status": "stored",
-  "record_id": "abc123"
-}
+EC2 instances are **never directly exposed to the internet**.
 
 ---
 
-## Security & IAM Design Decisions
-
-At Oracle, I implemented strict IAM and network isolation controls:
-
-- OIDC-based GitHub authentication instead of long-lived credentials
-- Separate IAM roles for deployment and runtime
-- Runtime role limited to ECR pull and SSM access
-- No S3 backend access from EC2
-- ALB and EC2 security groups isolated
-- IMDSv2 enforced
-- HTTPS-only ingress
-
----
-
-## ECR Lifecycle Management
-
-- Image tags set to IMMUTABLE
-- Scan-on-push enabled
-- Lifecycle policy retains only the latest 5 images
-- Prevents storage sprawl and reduces cost
-
----
-
-## Infrastructure Reversibility
-
-Infrastructure lifecycle was fully managed via GitHub workflows.
-
-A manual destroy workflow required explicit confirmation before executing Terraform destroy, preventing accidental deletion and ensuring cost control.
-
----
-
-## Key Engineering Principles Applied
+# Key Engineering Principles Applied
 
 - Immutable infrastructure
 - Git-driven deployments
 - Least-privilege IAM
 - Modular Terraform architecture
-- Rolling instance refresh instead of in-place modification
+- Rolling instance refresh
 - Remote state management
 - Secure CI authentication
 
 ---
 
-## Technologies Used
+# Technologies Used
 
 AWS (EC2, ECR, ALB, ASG, ACM, Route53, IAM, S3, VPC, SSM)  
 Terraform  

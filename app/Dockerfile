@@ -1,4 +1,4 @@
-# Base image with Python runtime
+# Import python Base image
 FROM python:3.11-slim
 
 # Install nginx web server

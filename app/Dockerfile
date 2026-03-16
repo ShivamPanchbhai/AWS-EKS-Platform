@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
 # create non-root user
 RUN useradd -m appuser
 
+# sets the working directory inside the container filesystem.
 WORKDIR /app
 
 # copy requirements and install

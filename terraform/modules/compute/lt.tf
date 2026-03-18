@@ -1,8 +1,8 @@
-#############################################
+############################################
 # EC2 Security Group
 # Only ALB can talk to EC2 on port 8000
 # Prometheus can scrape Node Exporter on 9100
-#############################################
+############################################
 resource "aws_security_group" "ec2_sg" {
   name   = "${var.service_name}-ec2-sg"
   vpc_id = var.vpc_id

@@ -94,5 +94,3 @@ resource "aws_acm_certificate_validation" "this" {
     for r in aws_route53_record.acm_validation : r.fqdn
   ]
 }
-
-

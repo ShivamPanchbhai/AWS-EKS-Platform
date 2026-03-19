@@ -72,5 +72,5 @@ jobs:
       # Creates or updates AWS resources
       ########################################################
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var="image_tag=latest"
         working-directory: terraform

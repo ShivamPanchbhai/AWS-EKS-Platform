@@ -106,7 +106,7 @@ module "acm" {
 resource "aws_security_group" "prometheus_sg" {
   name        = "prometheus-sg"
   description = "Allow Prometheus to scrape Node Exporter"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "Prometheus scrape"

@@ -5,8 +5,9 @@
 # Deploy or update AWS infrastructure using Terraform.
 #
 # Trigger:
-# Runs only when files inside terraform/ are modified
-# and pushed to the main branch.
+
+# Change in terraform → infra runs 
+# App deploy completes → infra runs 
 ############################################################
 
 name: Infra Deploy
@@ -15,9 +16,13 @@ on:
   push:
     branches:
       - main
-    # Only trigger when Terraform code changes
     paths:
       - "terraform/**"
+
+  workflow_run:
+    workflows: ["App Deploy (ECR + ASG)"]
+    types:
+      - completed
 
 ############################################################
 # Required for GitHub OIDC authentication

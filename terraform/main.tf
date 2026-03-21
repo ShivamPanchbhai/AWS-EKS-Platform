@@ -139,7 +139,6 @@ module "alb" {
   source = "./modules/alb"
 
   service_name = "ehr"
-  vpc_id       = data.aws_vpc.default.id
   subnet_ids   = data.aws_subnets.default.ids
 
   certificate_arn = module.acm.certificate_arn

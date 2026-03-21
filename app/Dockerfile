@@ -39,11 +39,3 @@ CMD uvicorn main:app --host 127.0.0.1 --port 8001 & nginx -g 'daemon off;'
 # run in foreground
 # daemon off is required because Docker containers must keep one main foreground process running.
 # If nginx ran in background, the container would exit.
-
-
-
-
-
-
-
-

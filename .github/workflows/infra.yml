@@ -20,11 +20,11 @@ on:
       - "terraform/**"
 
   workflow_run:
-   workflows: ["App Deploy (ECR + ASG)"]
-   types:
-    - completed
-   branches:
-    - main
+    workflows: ["App Deploy (ECR + ASG)"]
+    types:
+      - completed
+
+  workflow_dispatch:      # enables manual run button for this workflow
 
 ############################################################
 # Required for GitHub OIDC authentication

@@ -53,7 +53,7 @@ resource "aws_lb_target_group" "this" {
   name     = "${var.service_name}-tg"
   port     = 8000
   protocol = "HTTP"
-  vpc_id  = var.vpc_id
+  vpc_id   = data.aws_vpc.default.id
 
   health_check {
     path                = "/health" # ALB will send an HTTP request to /health Because your target group is port = 8000 & protocol = HTTP

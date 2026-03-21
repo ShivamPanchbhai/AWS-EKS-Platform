@@ -138,6 +138,7 @@ resource "aws_security_group" "prometheus_sg" {
 module "alb" {
   source = "./modules/alb"
 
+  vpc_id = data.aws_vpc.default.id
   service_name = "ehr"
   subnet_ids   = data.aws_subnets.default.ids
 

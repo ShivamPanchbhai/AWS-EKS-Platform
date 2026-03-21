@@ -45,7 +45,7 @@ jobs:
       ########################################################
       - name: Build Docker image
         run: |
-          docker build -t ehr-service:${{ github.sha }} app/
+          docker build -t ehr-service:${{ github.sha }} ./app
 
       ########################################################
       # 5️⃣ Tag Image

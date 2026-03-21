@@ -9,11 +9,6 @@ on:
 
   workflow_dispatch:
 
-  workflow_run:
-    workflows: ["Infra Deploy"]   # name of your infra workflow
-    types:
-      - completed
-
 jobs:
   deploy:
     runs-on: ubuntu-latest

@@ -135,7 +135,7 @@ systemctl start node_exporter
 # Authenticate to ECR
 ############################################
 aws ecr get-login-password --region ${var.region} \
-  | docker login --username AWS --password-stdin ${var.repository_url}
+  | docker login --username AWS --password-stdin $(echo ${var.repository_url} | cut -d'/' -f1)
 
 ############################################
 # Pull Latest Image

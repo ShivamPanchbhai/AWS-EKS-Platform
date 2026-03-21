@@ -11,8 +11,3 @@ variable "image_tag" {
   description = "Docker image tag passed from CI/CD"
   type        = string
 }
-
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-}

@@ -12,7 +12,7 @@ COPY app/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code
-COPY app/ /app/
+COPY . /app/
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf

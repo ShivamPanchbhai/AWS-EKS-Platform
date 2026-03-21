@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy Python dependencies file and install them
-COPY app/requirements.txt /app/
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code

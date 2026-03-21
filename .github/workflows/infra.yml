@@ -52,6 +52,15 @@ jobs:
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
 
     runs-on: ubuntu-latest
+  
+  "Condition": {
+        "StringEquals": {
+         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+           },
+        "StringLike": {
+        "token.actions.githubusercontent.com:sub": "repo:ShivamPanchbhai/AWS-CI-CD:*"
+        }
+        }
     
     steps:
 

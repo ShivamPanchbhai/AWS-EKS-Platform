@@ -1,4 +1,6 @@
 # AWS CI/CD Infrastructure – Cloud-Native Immutable Platform
+> Production-grade AWS platform built using Terraform, GitHub Actions (OIDC), and Docker with fully automated immutable deployments.
+---
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazonaws&logoColor=white)
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform)
@@ -39,6 +41,29 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 
 ![Architecture Diagram](./architecture-diagram.png)
 
+
+How It Works (End-to-End Flow)
+1. Developer pushes code to GitHub
+
+2. App Pipeline triggers:
+   → Builds Docker image
+   → Tags with commit SHA
+   → Pushes image to ECR
+
+3. Infra Pipeline triggers:
+   → Terraform apply
+   → Updates Launch Template with new image tag
+
+4. Auto Scaling Group:
+   → Performs rolling instance refresh
+   → New EC2 instances launch
+
+5. EC2 bootstraps automatically:
+   → Pulls image from ECR
+   → Starts container
+
+6. Traffic flow:
+   Client → Route53 → ALB (HTTPS) → EC2 → Docker → FastAPI
 ---
 
 ## Architecture Layers

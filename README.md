@@ -23,7 +23,7 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 
 ---
 
-## Architecture (Clean + Interview-ready Diagram)
+## Architecture 
 
 ```text
                      ┌──────────────────────────┐

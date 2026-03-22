@@ -183,15 +183,14 @@ Code Push → GitHub Actions → Build Image → Push to ECR
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
-```text
-AWS (EC2, ASG, ALB, ECR, IAM, S3, Route53, ACM, SSM)
+AWS (EC2, ASG, ALB, ECR, IAM, S3, Route53, ACM, SSM, CloudShell)
 Terraform
 GitHub Actions (OIDC)
 Docker
 FastAPI
 nginx
-```
+
 
 ---

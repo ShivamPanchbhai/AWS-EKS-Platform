@@ -1,6 +1,6 @@
 ---
 
-## AWS CI/CD Infrastructure – Cloud-Native Immutable Platform
+# AWS CI/CD Infrastructure – Cloud-Native Immutable Platform
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazonaws&logoColor=white)
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform)
@@ -8,7 +8,9 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI/CD-black?logo=githubactions)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green?logo=fastapi)
 ![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-darkgreen?logo=nginx)
-![Platform](https://img.shields.io/badge/Architecture-Platform_Engineering-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Platform_Engineering-blue)
+
+<br/>
 
 ![App Deploy](https://github.com/ShivamPanchbhai/AWS-CI-CD/actions/workflows/app_deploy.yml/badge.svg)
 ![Infra Deploy](https://github.com/ShivamPanchbhai/AWS-CI-CD/actions/workflows/infra.yml/badge.svg)

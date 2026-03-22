@@ -1,5 +1,3 @@
----
-
 # AWS CI/CD Infrastructure – Cloud-Native Immutable Platform
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazonaws&logoColor=white)

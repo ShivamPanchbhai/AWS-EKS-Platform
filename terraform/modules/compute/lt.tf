@@ -46,6 +46,11 @@ resource "aws_launch_template" "docker_lt" {
 
   ############################################
   # Enforce IMDSv2
+  # AWS does this:
+
+  # • Reject ALL metadata calls without token
+  # • Allow ONLY token-based (IMDSv2) calls
+
   ############################################
   metadata_options {
     http_tokens = "required"

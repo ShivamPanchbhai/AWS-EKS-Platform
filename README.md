@@ -207,7 +207,7 @@ Code Push → GitHub Actions → Build Image → Push to ECR
 
 ---
 
-## ⚙️ Engineering Principles
+## Engineering Principles
 
 ```text
 • Immutable infrastructure

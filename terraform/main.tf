@@ -99,44 +99,6 @@ module "acm" {
   domain_name = "shivam.store"
 }
 
-############################################################
-# SECURITY GROUP: Allow Prometheus to collect metrics
-############################################################
-
-resource "aws_security_group" "prometheus_sg" {
-  name        = "prometheus-sg"
-  description = "Allows monitoring server to fetch metrics from app instances"
-  vpc_id      = data.aws_vpc.default.id
-
-  ##########################################################
-  # INBOUND RULE
-  ##########################################################
-  ingress {
-    description = "Allow Prometheus server to access Node Exporter (metrics)"
-
-    from_port   = 9100          # Node Exporter runs on this port
-    to_port     = 9100
-    protocol    = "tcp"
-
-    # For now: allow from anywhere (easy setup)
-    # Later: restrict only to monitoring instance
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ##########################################################
-  # OUTBOUND RULE
-  ##########################################################
-  egress {
-    description = "Allow app instances to respond back to Prometheus"
-
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-
-    # Allow all outgoing traffic
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
 
 ############################################################
 # MODULE: ALB (Ingress Layer)
@@ -233,8 +195,22 @@ module "compute" {
   ##########################################################
   service_name = "ehr"
 
-  ##########################################################
-  # prometheus
-  ##########################################################
-   prometheus_sg_id = aws_security_group.prometheus_sg.id
+##########################################################
+# Allow internal VPC access 
+##########################################################
+
+# Instead of allowing traffic from a specific security group
+# (which creates tight dependency between app and monitoring),
+# we allow traffic from the entire VPC network.
+
+# This means:
+# → Any resource inside this VPC (including monitoring EC2)
+#   can access the app instances on required ports (like 9100)
+# → No direct dependency on monitoring SG
+# → Avoids deletion issues and circular references
+
+# Monitoring pulls metrics → app doesn’t care who is calling
+
+vpc_cidr = data.aws_vpc.default.cidr_block
+
 }

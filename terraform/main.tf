@@ -100,28 +100,40 @@ module "acm" {
 }
 
 ############################################################
-# MODULE: Prometheus security group
+# SECURITY GROUP: Allow Prometheus to collect metrics
 ############################################################
 
 resource "aws_security_group" "prometheus_sg" {
   name        = "prometheus-sg"
-  description = "Allow Prometheus to scrape Node Exporter"
+  description = "Allows monitoring server to fetch metrics from app instances"
   vpc_id      = data.aws_vpc.default.id
 
+  ##########################################################
+  # INBOUND RULE
+  ##########################################################
   ingress {
-    description = "Prometheus scrape"
-    from_port   = 9100
+    description = "Allow Prometheus server to access Node Exporter (metrics)"
+
+    from_port   = 9100          # Node Exporter runs on this port
     to_port     = 9100
     protocol    = "tcp"
 
-    # restrict later (for now allow)
+    # For now: allow from anywhere (easy setup)
+    # Later: restrict only to monitoring instance
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ##########################################################
+  # OUTBOUND RULE
+  ##########################################################
   egress {
+    description = "Allow app instances to respond back to Prometheus"
+
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+
+    # Allow all outgoing traffic
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -144,6 +156,20 @@ module "alb" {
 
   certificate_arn = module.acm.certificate_arn
   domain_name     = "shivam.store"
+}
+
+############################################################
+# MODULE: monitoring 
+############################################################
+
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  vpc_id                     = data.aws_vpc.default.id
+  subnet_id                  = data.aws_subnets.default.ids[0]
+  ami_id                     = data.aws_ami.amazon_linux.id
+  key_name                   = var.key_name
+  app_instance_private_ip = "PRIVATE_IP_OF_ONE_RUNNING_INSTANCE"
 }
 
 ############################################################

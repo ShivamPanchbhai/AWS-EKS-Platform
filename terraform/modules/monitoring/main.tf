@@ -3,24 +3,11 @@
 ############################################
 resource "aws_security_group" "monitoring_sg" {
 
-  # Name of the security group (just for identification in AWS console)
+  # Name of the security group (for identification in AWS console)
   name = "monitoring-sg"
 
-  # Attach this security group to the same VPC as your app
+  # Attach this security group to the same VPC as our app
   vpc_id = var.vpc_id
-
-  ############################################
-  # Allow SSH (for manual access if needed)
-  ############################################
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-
-    # Allow from anywhere (not safe for production)
-    # You kept this for debugging / initial setup
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   ############################################
   # Allow access to Prometheus UI
@@ -30,7 +17,7 @@ resource "aws_security_group" "monitoring_sg" {
     to_port     = 9090
     protocol    = "tcp"
 
-    # This lets you open Prometheus dashboard in browser
+    # This lets us open Prometheus dashboard in browser
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -42,7 +29,7 @@ resource "aws_security_group" "monitoring_sg" {
     to_port     = 0
     protocol    = "-1"
 
-    # Allow this EC2 to talk to anything
+    # Allow this monitoring EC2 to talk to anything
     # Needed so Prometheus can:
     # → reach app instances
     # → scrape metrics on port 9100
@@ -124,7 +111,7 @@ EOF
   # Tags (for identification in AWS)
   ############################################
   tags = {
-    # Just helps you identify this instance in console
+    # Just helps us identify this instance in console
     Name = "monitoring-instance"
   }
 }

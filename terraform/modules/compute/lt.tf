@@ -15,12 +15,15 @@ resource "aws_security_group" "ec2_sg" {
     security_groups = [var.alb_security_group_id]
   }
 
-# Allow Node Exporter access (internal only)
+# Allow Node Exporter access from inside VPC
+# → Monitoring EC2 (Prometheus) runs inside same VPC
+# → It scrapes metrics on port 9100
+# → No dependency on monitoring SG (decoupled design)
 ingress {
   from_port   = 9100
   to_port     = 9100
   protocol    = "tcp"
-  cidr_blocks = [var.vpc_cidr]  # or private subnet CIDR
+  cidr_blocks = [var.vpc_cidr]
 }
 
   # Outbound internet
@@ -60,8 +63,8 @@ resource "aws_launch_template" "docker_lt" {
   # IAM Instance Profile
   ############################################
   iam_instance_profile {
-  name = "ec2-runtime-instance-profile"
-  }
+  name = var.instance_profile_name
+}
 
   ############################################
   # Root Volume

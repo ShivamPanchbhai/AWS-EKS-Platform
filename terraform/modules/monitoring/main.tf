@@ -4,7 +4,7 @@
 resource "aws_security_group" "monitoring_sg" {
 
   # Name of the security group (for identification in AWS console)
-  name = "monitoring-sg"
+  name_prefix = "monitoring-sg"
 
   # Attach this security group to the same VPC as our app
   vpc_id = var.vpc_id

@@ -91,9 +91,17 @@ cat <<EOT > /opt/prometheus/prometheus.yml
 global:
   scrape_interval: 15s
 
-# Right now:
-# No targets defined yet
-# Later we will add EC2 auto-discovery here
+scrape_configs:
+  - job_name: 'node-exporter'
+
+    ec2_sd_configs:
+      - region: ap-south-1
+        port: 9100
+
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Monitoring]
+        regex: node-exporter
+        action: keep
 EOT
 
 ############################################

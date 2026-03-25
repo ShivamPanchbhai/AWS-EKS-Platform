@@ -159,19 +159,35 @@ module "alb" {
 }
 
 ############################################################
-# MODULE: monitoring 
+# MODULE: monitoring
+# This block activates the monitoring module and passes required
+# infrastructure details so Terraform can provision a dedicated EC2
+# instance for Prometheus-based metric collection.
 ############################################################
 
 module "monitoring" {
+
+  # This tells Terraform:
+  # "Go inside ./modules/monitoring and run whatever is defined there"
+  # Without this block,  monitoring module will NEVER execute
   source = "./modules/monitoring"
 
-  vpc_id                     = data.aws_vpc.default.id
-  subnet_id                  = data.aws_subnets.default.ids[0]
-  ami_id                     = data.aws_ami.amazon_linux.id
-  key_name                   = var.key_name
-  app_instance_private_ip = "PRIVATE_IP_OF_ONE_RUNNING_INSTANCE"
-}
+  ############################################
+  # Passing required inputs to the module
+  ############################################
 
+  # VPC where monitoring EC2 will be launched
+  # (same network our app EC2)
+  vpc_id = data.aws_vpc.default.id
+
+  # Subnet where monitoring EC2 will sit
+  # (decides networking + routing behavior)
+  subnet_id = data.aws_subnets.default.ids[0]
+
+  # Base OS image for monitoring EC2
+  # (Amazon Linux in our case)
+  ami_id = data.aws_ami.amazon_linux.id
+}
 ############################################################
 # MODULE: COMPUTE (Runtime Layer)
 ############################################################

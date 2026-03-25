@@ -44,4 +44,8 @@ variable "prometheus_sg_id" {
   type        = string
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block of VPC for internal access"
+  type        = string
+}
 

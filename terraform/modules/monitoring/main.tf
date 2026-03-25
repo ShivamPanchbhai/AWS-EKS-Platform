@@ -55,7 +55,7 @@ resource "aws_instance" "monitoring" {
   vpc_security_group_ids = [aws_security_group.monitoring_sg.id]
 
   # attaching monitoring instance profile to monitoring EC2 IAM Role
-  iam_instance_profile = aws_iam_instance_profile.prometheus.name
+  iam_instance_profile = var.prometheus_instance_profile_name
 
   ############################################
   # User Data (runs at instance startup)

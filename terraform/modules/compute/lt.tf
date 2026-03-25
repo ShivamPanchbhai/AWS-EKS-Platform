@@ -166,19 +166,17 @@ EOF
 
 ############################################
 # Tags for EC2 instances + volumes
+# This is the IMPORTANT one
+# Prometheus will look for this tag to discover instances
+# Instead of hardcoding IPs, it will say:
+# "Give me all EC2 where Monitoring = node-exporter"
 ############################################
 tag_specifications {
   resource_type = "instance"
 
   tags = {
     # Just a human-readable name (you see this in AWS console)
-    Name = "${var.service_name}-runtime"
-
-    # This is the IMPORTANT one
-    # Prometheus will look for this tag to discover instances
-    # Instead of hardcoding IPs, it will say:
-    # "Give me all EC2 where Monitoring = node-exporter"
-    
+    Name = "${var.service_name}-runtime" 
     Monitoring = "node-exporter"
   }
 }
@@ -191,3 +189,5 @@ tag_specifications {
     Monitoring = "node-exporter"
   }
 }
+
+} # aws_launch_template" "docker_lt ends here

@@ -164,14 +164,30 @@ docker run -d \
 EOF
   )
 
-  ############################################
-  # Tags
-  ############################################
-  tag_specifications {
-    resource_type = "instance"
+############################################
+# Tags for EC2 instances + volumes
+############################################
+tag_specifications {
+  resource_type = "instance"
 
-    tags = {
-      Name = "${var.service_name}-runtime"
-    }
+  tags = {
+    # Just a human-readable name (you see this in AWS console)
+    Name = "${var.service_name}-runtime"
+
+    # This is the IMPORTANT one
+    # Prometheus will look for this tag to discover instances
+    # Instead of hardcoding IPs, it will say:
+    # "Give me all EC2 where Monitoring = node-exporter"
+    
+    Monitoring = "node-exporter"
+  }
+}
+
+tag_specifications {
+  resource_type = "volume"
+
+  tags = {
+    Name       = "${var.service_name}-runtime-volume"
+    Monitoring = "node-exporter"
   }
 }

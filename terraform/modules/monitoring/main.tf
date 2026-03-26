@@ -9,9 +9,9 @@ resource "aws_security_group" "monitoring_sg" {
   # Attach this security group to the same VPC as our app
   vpc_id = var.vpc_id
 
-  ############################################
-  # Allow access to Prometheus UI
-  ############################################
+############################################
+ # Allow access to Prometheus UI
+############################################
   ingress {
     from_port   = 9090
     to_port     = 9090
@@ -21,9 +21,16 @@ resource "aws_security_group" "monitoring_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ############################################
-  # Allow access to Grafana UI
-  ############################################
+############################################
+ # Attaching policies to Prometheus
+############################################
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+role       = var.prometheus_role_name
+policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+############################################
+ # Allow access to Grafana UI
+############################################
 ingress {
   from_port   = 3000
   to_port     = 3000
@@ -32,9 +39,9 @@ ingress {
   # Grafana UI access
   cidr_blocks = ["0.0.0.0/0"]
 }
-  ############################################
-  # Outbound traffic (very important)
-  ############################################
+############################################
+ # Outbound traffic (very important)
+############################################
   egress {
     from_port   = 0
     to_port     = 0

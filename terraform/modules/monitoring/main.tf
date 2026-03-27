@@ -136,13 +136,16 @@ cat <<EOF_GRAFANA > /etc/yum.repos.d/grafana.repo
 [grafana]
 name=Grafana
 baseurl=https://rpm.grafana.com
-repo_gpgcheck=1
 enabled=1
-gpgcheck=1
-gpgkey=https://rpm.grafana.com/gpg.key
+gpgcheck=0
+repo_gpgcheck=0
 EOF_GRAFANA
 
+dnf clean all
+dnf makecache
+
 dnf install -y grafana
+
 ############################################
 # Start Grafana
 ############################################

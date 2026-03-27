@@ -51,6 +51,7 @@ resource "aws_instance" "monitoring" {
   ]
 
   iam_instance_profile = var.prometheus_instance_profile_name
+  user_data_replace_on_change = true  # any update in user_data recreates the monitoring instance 
 
   ############################################
   # User Data

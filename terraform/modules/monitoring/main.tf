@@ -22,6 +22,15 @@ resource "aws_security_group" "monitoring_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+ # Alertmanager UI  # Without this: Alertmanager will run BUT we can't access UI
+
+ ingress {
+  from_port   = 9093
+  to_port     = 9093
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+ 
   # Outbound
   egress {
     from_port   = 0
@@ -29,7 +38,7 @@ resource "aws_security_group" "monitoring_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
+} # monitoring_sg block ends here
 
 ############################################
 # Monitoring EC2 Instance
@@ -150,14 +159,75 @@ systemctl daemon-reload || true
 systemctl enable grafana-server.service || true
 systemctl start grafana-server.service || true
 
+
+############################################
+# Install Alertmanager
+############################################
+echo "=== INSTALLING ALERTMANAGER ==="
+
+cd /opt
+
+# -q gives clean logs
+
+wget -q https://github.com/prometheus/alertmanager/releases/latest/download/alertmanager-0.27.0.linux-amd64.tar.gz
+
+tar -xvf alertmanager-0.27.0.linux-amd64.tar.gz
+
+mv alertmanager-0.27.0.linux-amd64 alertmanager
+
+############################################
+# Create Alertmanager config
+############################################
+cat <<EOF_ALERT > /opt/alertmanager/alertmanager.yml
+route:
+  receiver: "default"
+
+receivers:
+  - name: "default"
+EOF_ALERT
+
+############################################
+# Setup Alertmanager systemd service
+############################################
+echo "=== SETTING UP ALERTMANAGER SERVICE ==="
+
+mkdir -p /opt/alertmanager/data
+
+cat <<EOF_SERVICE > /etc/systemd/system/alertmanager.service
+
+[Unit]
+Description=Alertmanager
+After=network.target
+
+[Service]
+User=root
+ExecStart=/opt/alertmanager/alertmanager \
+  --config.file=/opt/alertmanager/alertmanager.yml \
+  --storage.path=/opt/alertmanager/data
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF_SERVICE
+
+############################################
+# Start Alertmanager
+############################################
+echo "=== STARTING ALERTMANAGER ==="
+
+systemctl daemon-reload || true
+systemctl enable alertmanager.service || true
+systemctl start alertmanager.service || true
+
 echo "=== USER DATA COMPLETE ==="
 
 EOF
 
-  ############################################
-  # Tags
-  ############################################
+############################################
+ # Tags
+############################################
   tags = {
     Name = "monitoring-instance"
   }
-}
+} # monitoring code block ends here

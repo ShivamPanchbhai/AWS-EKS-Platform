@@ -144,7 +144,13 @@ module "monitoring" {
 
   # Subnet where monitoring EC2 will sit
   # (decides networking + routing behavior)
-  subnet_id = data.aws_subnets.default.ids[0]
+  data "aws_subnets" "public" {
+  filter {
+    name   = "tag:Name"
+    values = ["*public*"]
+  }
+}
+  subnet_id = data.aws_subnets.public.ids[0]
 
   # Base OS image for monitoring EC2
   # (Amazon Linux in our case)

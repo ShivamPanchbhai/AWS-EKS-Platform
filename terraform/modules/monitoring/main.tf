@@ -22,13 +22,6 @@ resource "aws_security_group" "monitoring_sg" {
   }
 
 ############################################
- # Attaching policies to Prometheus
-############################################
-resource "aws_iam_role_policy_attachment" "ssm_core" {
-role       = var.prometheus_role_name
-policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-############################################
  # Allow access to Grafana UI
 ############################################
 ingress {
@@ -74,6 +67,14 @@ resource "aws_instance" "monitoring" {
 
   # attaching monitoring instance profile to monitoring EC2 IAM Role
   iam_instance_profile = var.prometheus_instance_profile_name
+
+############################################
+# Attach SSM policy to Prometheus role
+############################################
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+  role       = var.prometheus_role_name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
 
 ############################################
 # User Data (runs at instance startup)
@@ -167,4 +168,5 @@ EOF
     # Just helps us identify this instance in console
     Name = "monitoring-instance"
   }
-}
+
+} # "aws_instance" "monitoring" block ends here

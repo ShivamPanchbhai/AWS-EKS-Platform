@@ -145,8 +145,8 @@ dnf install -y ./grafana-10.4.2-1.x86_64.rpm
 echo "=== STARTING GRAFANA ==="
 
 systemctl daemon-reload
-systemctl enable grafana-server
-systemctl start grafana-server
+systemctl enable grafana-server.service
+systemctl start grafana-server.service
 
 echo "=== USER DATA COMPLETE ==="
 

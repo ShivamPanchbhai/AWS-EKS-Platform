@@ -112,7 +112,7 @@ module "monitoring" {
   ##########################################################
   # KEY FIX: reuse ALB subnet (already public)
   ##########################################################
-  subnet_id = module.alb.subnet_ids[0]
+  subnet_id = data.aws_subnets.default.ids[0]
 
   ami_id = data.aws_ami.amazon_linux.id
 

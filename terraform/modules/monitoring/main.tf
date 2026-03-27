@@ -133,18 +133,15 @@ systemctl start prometheus
 ############################################
 echo "=== INSTALLING GRAFANA ==="
 
-cat <<EOG > /etc/yum.repos.d/grafana.repo
-[grafana]
-name=Grafana
-baseurl=https://rpm.grafana.com
-enabled=1
-gpgcheck=0
-repo_gpgcheck=0
-EOG
+cd /tmp
 
-dnf clean all
-dnf makecache
-dnf install -y grafana
+wget -q https://dl.grafana.com/oss/release/grafana-10.4.2-1.x86_64.rpm
+
+dnf install -y ./grafana-10.4.2-1.x86_64.rpm
+
+systemctl daemon-reload
+systemctl enable grafana-server
+systemctl start grafana-server
 
 ############################################
 # Start Grafana

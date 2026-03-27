@@ -69,14 +69,6 @@ resource "aws_instance" "monitoring" {
   iam_instance_profile = var.prometheus_instance_profile_name
 
 ############################################
-# Attach SSM policy to Prometheus role
-############################################
-resource "aws_iam_role_policy_attachment" "ssm_core" {
-  role       = var.prometheus_role_name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-############################################
 # User Data (runs at instance startup)
 ############################################
 user_data = <<-EOF

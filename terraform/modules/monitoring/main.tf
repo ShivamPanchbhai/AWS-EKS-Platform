@@ -103,6 +103,15 @@ cat <<EOT > /opt/prometheus/prometheus.yml
 global:
   scrape_interval: 15s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "localhost:9093"
+
+rule_files:
+  - /opt/prometheus/alert.rules.yml
+
 scrape_configs:
   - job_name: 'node-exporter'
     ec2_sd_configs:
@@ -113,6 +122,24 @@ scrape_configs:
         regex: node-exporter
         action: keep
 EOT
+
+############################################
+# Prometheus alert rules
+############################################
+echo "=== CREATING ALERT RULES ==="
+
+cat <<EOF_RULE > /opt/prometheus/alert.rules.yml
+groups:
+  - name: test-alerts
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance is down"
+EOF_RULE
 
 ############################################
 # Systemd service

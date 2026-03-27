@@ -69,15 +69,8 @@ dnf install -y wget
 ############################################
 # Install Prometheus
 ############################################
-cd /tmp
 
-wget https://github.com/prometheus/prometheus/releases/download/v2.51.2/prometheus-2.51.2.linux-amd64.tar.gz
-
-tar -xvf prometheus-2.51.2.linux-amd64.tar.gz
-
-mv prometheus-2.51.2.linux-amd64 /opt/prometheus
-
-chmod +x /opt/prometheus/prometheus
+dnf install -y prometheus
 
 ############################################
 # Prometheus config
@@ -102,10 +95,8 @@ EOT
 ############################################
 # Start Prometheus
 ############################################
-nohup /opt/prometheus/prometheus \
-  --config.file=/opt/prometheus/prometheus.yml \
-  --storage.tsdb.path=/opt/prometheus/data \
-  --web.listen-address=":9090" > /var/log/prometheus.log 2>&1 &
+systemctl enable prometheus
+systemctl start prometheus
 
 ############################################
 # Install Grafana

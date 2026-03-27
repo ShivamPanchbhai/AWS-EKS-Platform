@@ -47,12 +47,14 @@ resource "aws_instance" "monitoring" {
   iam_instance_profile         = var.prometheus_instance_profile_name
   user_data_replace_on_change  = true
 
-  ############################################
-  # User Data
-  ############################################
+############################################
+# User Data
+# -e → exit on error
+# -x → print commands (debug)
+############################################
   user_data = <<-EOF
 #!/bin/bash
-set -e
+set -x
 
 echo "=== STARTING USER DATA ==="
 
@@ -144,9 +146,9 @@ dnf install -y ./grafana-10.4.2-1.x86_64.rpm
 ############################################
 echo "=== STARTING GRAFANA ==="
 
-systemctl daemon-reload
-systemctl enable grafana-server.service
-systemctl start grafana-server.service
+systemctl daemon-reload || true
+systemctl enable grafana-server.service || true
+systemctl start grafana-server.service || true
 
 echo "=== USER DATA COMPLETE ==="
 

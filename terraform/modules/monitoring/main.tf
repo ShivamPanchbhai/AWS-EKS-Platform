@@ -30,6 +30,14 @@ resource "aws_security_group" "monitoring_sg" {
   protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
 }
+
+# SSH access (TEMP for debugging)
+ingress {
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]  # later restrict to your IP
+}
  
   # Outbound
   egress {

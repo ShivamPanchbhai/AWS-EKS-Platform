@@ -63,7 +63,7 @@ resource "aws_instance" "monitoring" {
 ############################################
   user_data = <<-EOF
 #!/bin/bash
-set -x
+set -ex
 
 echo "=== STARTING USER DATA ==="
 
@@ -121,6 +121,9 @@ scrape_configs:
       - source_labels: [__meta_ec2_tag_Monitoring]
         regex: node-exporter
         action: keep
+  - job_name: 'cloudwatch'
+    static_configs:
+      - targets: ['localhost:9106']
 EOT
 
 ############################################
@@ -250,6 +253,74 @@ echo "=== STARTING ALERTMANAGER ==="
 systemctl daemon-reload || true
 systemctl enable alertmanager.service || true
 systemctl start alertmanager.service || true
+
+
+############################################
+# Install CloudWatch Exporter
+############################################
+echo "=== INSTALLING CLOUDWATCH EXPORTER ==="
+
+cd /opt
+
+wget -q https://github.com/prometheus/cloudwatch_exporter/releases/download/v0.15.0/cloudwatch_exporter-0.15.0-jar-with-dependencies.jar
+
+mkdir -p /opt/cloudwatch_exporter
+
+mv cloudwatch_exporter-0.15.0-jar-with-dependencies.jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar
+
+echo "=== INSTALLING JAVA ==="
+
+dnf install -y java-17-amazon-corretto
+
+############################################
+# Create Cloudwatch config
+############################################
+
+echo "=== CONFIGURING CLOUDWATCH EXPORTER ==="
+
+cat <<EOF_CW > /opt/cloudwatch_exporter/config.yml
+region: ap-south-1
+
+metrics:
+  - aws_namespace: AWS/AutoScaling
+    aws_metric_name: GroupDesiredCapacity
+    dimensions: [AutoScalingGroupName]
+    statistics: [Average]
+
+  - aws_namespace: AWS/AutoScaling
+    aws_metric_name: GroupMaxSize
+    dimensions: [AutoScalingGroupName]
+    statistics: [Average]
+
+  - aws_namespace: AWS/EC2
+    aws_metric_name: CPUUtilization
+    dimensions: [InstanceId]
+    statistics: [Average]
+EOF_CW
+
+############################################
+# Setup Cloudwatch systemd service
+############################################
+
+echo "=== SETTING UP CLOUDWATCH EXPORTER SERVICE ==="
+
+cat <<EOF_CW_SERVICE > /etc/systemd/system/cloudwatch_exporter.service
+
+[Unit]
+Description=CloudWatch Exporter
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF_CW_SERVICE
+
+systemctl daemon-reload
+systemctl enable cloudwatch_exporter
+systemctl start cloudwatch_exporter
 
 echo "=== USER DATA COMPLETE ==="
 

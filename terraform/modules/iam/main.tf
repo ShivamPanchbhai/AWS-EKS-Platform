@@ -69,6 +69,27 @@ resource "aws_iam_role" "prometheus" {
   })
 }
 
+resource "aws_iam_role_policy" "prometheus_cloudwatch" {
+  name = "prometheus-cloudwatch-access"
+  role = aws_iam_role.prometheus.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          "autoscaling:DescribeAutoScalingGroups",
+          "ec2:DescribeInstances"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 #############################
 # Instance profile for Prometheus EC2
 #############################

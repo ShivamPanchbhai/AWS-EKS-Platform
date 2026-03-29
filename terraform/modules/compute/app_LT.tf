@@ -212,16 +212,27 @@ for i in {1..60}; do
 done
 
 ############################################
-# FINAL HARD GUARANTEE (BLOCK UNTIL READY)
+# FINAL STABILITY CHECK (STRICT)
 ############################################
-echo "Ensuring app is fully ready before finishing..."
+echo "Ensuring app stability..."
 
-until curl -s http://localhost:8000/health | grep -q "ok"; do
-  echo "App not ready yet..."
-  sleep 5
+SUCCESS_COUNT=0
+
+while [ $SUCCESS_COUNT -lt 5 ]; do
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health || echo 000)
+
+  if [ "$STATUS" = "200" ]; then
+    SUCCESS_COUNT=$((SUCCESS_COUNT+1))
+    echo "Success $SUCCESS_COUNT/5"
+  else
+    SUCCESS_COUNT=0
+    echo "Failed check, resetting..."
+  fi
+
+  sleep 3
 done
 
-echo "App fully ready"
+echo "App fully stable"
 
 
 EOF

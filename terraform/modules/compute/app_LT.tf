@@ -170,7 +170,7 @@ docker run -d \
 echo "Waiting for app to be ready..."
 
 for i in {1..30}; do
-  STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health || echo 000)
+  STATUS=$(curl -s -o /dev/null -w '%%{http_code}' http://localhost:8000/health || echo 000)
 
   if [ "$STATUS" = "200" ]; then
     echo "App is ready"

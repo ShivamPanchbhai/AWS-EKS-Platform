@@ -40,7 +40,7 @@ ingress {
 ############################################
 resource "aws_launch_template" "docker_lt" {
 
-  name_prefix = "${var.service_name}-runtime-${timestamp()}" # Forces Terraform to create NEW launch template
+  name_prefix = "${var.service_name}-runtime-${formatdate("YYYYMMDDhhmmss", timestamp())}"
 
   image_id      = var.ami_id
   instance_type = "t3.micro"

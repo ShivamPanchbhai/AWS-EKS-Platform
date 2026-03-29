@@ -71,7 +71,7 @@ resource "aws_instance" "monitoring" {
 ############################################
   user_data = <<-EOF
 #!/bin/bash
-set -ex
+set -x
 
 echo "=== STARTING USER DATA ==="
 
@@ -79,7 +79,10 @@ echo "=== STARTING USER DATA ==="
 # Base setup
 ############################################
 dnf update -y
-dnf install -y wget
+dnf install -y amazon-ssm-agent wget
+
+systemctl enable amazon-ssm-agent
+systemctl start amazon-ssm-agent
 
 ############################################
 # Install Prometheus

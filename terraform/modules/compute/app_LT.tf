@@ -140,15 +140,23 @@ systemctl enable node_exporter
 systemctl start node_exporter
 
 ############################################
-# Authenticate to ECR
+# Authenticate to ECR (with retry)
 ############################################
-aws ecr get-login-password --region ${var.region} \
-  | docker login --username AWS --password-stdin $(echo ${var.repository_url} | cut -d'/' -f1)
+for i in {1..5}; do
+  aws ecr get-login-password --region ${var.region} \
+    | docker login --username AWS --password-stdin $(echo ${var.repository_url} | cut -d'/' -f1) && break
+  echo "ECR login failed, retrying..."
+  sleep 5
+done
 
 ############################################
-# Pull Latest Image
+# Pull Latest Image (with retry)
 ############################################
-docker pull ${var.repository_url}:${var.image_tag}
+for i in {1..5}; do
+  docker pull ${var.repository_url}:${var.image_tag} && break
+  echo "Docker pull failed, retrying..."
+  sleep 5
+done
 
 ############################################
 # Remove Old Container

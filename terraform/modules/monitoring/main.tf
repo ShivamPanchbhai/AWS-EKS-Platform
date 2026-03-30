@@ -62,7 +62,7 @@ resource "aws_instance" "monitoring" {
   ]
 
   iam_instance_profile         = var.prometheus_instance_profile_name
-  user_data_replace_on_change  = true
+  user_data_replace_on_change  = true 
 
 ############################################
 # User Data
@@ -226,11 +226,22 @@ mkdir -p /opt/alertmanager/data
 # Create Alertmanager config
 ############################################
 cat <<EOF_ALERT > /opt/alertmanager/alertmanager.yml
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'panchbhaishivam@gmail.com'
+  smtp_auth_username: 'panchbhaishivam@gmail.com'
+  smtp_auth_password: 'pxyvtzkaanarrwdf'
+  smtp_require_tls: true
+
 route:
-  receiver: "default"
+  receiver: "email-alert"
 
 receivers:
-  - name: "default"
+  - name: "email-alert"
+    email_configs:
+      - to: "panchbhaishivam@gmail.com"
+        send_resolved: true
+
 EOF_ALERT
 
 ############################################

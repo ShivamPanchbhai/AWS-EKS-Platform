@@ -78,7 +78,7 @@ echo "=== STARTING USER DATA ==="
 ############################################
 # Base setup
 ############################################
-dnf update -y
+dnf update -y || true
 dnf install -y amazon-ssm-agent wget java-17-amazon-corretto
 
 systemctl enable amazon-ssm-agent

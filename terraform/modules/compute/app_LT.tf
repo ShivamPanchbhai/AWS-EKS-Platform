@@ -40,7 +40,7 @@ ingress {
 ############################################
 resource "aws_launch_template" "docker_lt" {
 
-  name_prefix = "${var.service_name}-runtime-${formatdate("YYYYMMDDhhmmss", timestamp())}"
+  name = "${var.service_name}-runtime"
 
   image_id      = var.ami_id
   instance_type = "t3.micro"

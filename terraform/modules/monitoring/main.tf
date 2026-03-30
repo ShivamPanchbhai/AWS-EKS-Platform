@@ -77,6 +77,8 @@ set -x
 ############################################
 # Base setup
 ############################################
+dnf install -y java-17-amazon-corretto || true
+dnf install -y wget || true
 dnf install -y amazon-ssm-agent || true
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
@@ -97,13 +99,13 @@ tar -xzf prometheus-2.51.2.linux-amd64.tar.gz
 
 mkdir -p /opt/prometheus
 
-mv prometheus-2.51.2.linux-amd64/* /opt/prometheus/
+mv prometheus-2.51.2.linux-amd64 /opt/prometheus
 
-cp /opt/prometheus/prometheus /usr/local/bin/
-cp /opt/prometheus/promtool /usr/local/bin/
+ln -sf /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus /usr/local/bin/prometheus
+ln -sf /opt/prometheus/prometheus-2.51.2.linux-amd64/promtool /usr/local/bin/promtool
 
-chmod +x /usr/local/bin/prometheus
-chmod +x /usr/local/bin/promtool
+chmod +x /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus
+chmod +x /opt/prometheus/prometheus-2.51.2.linux-amd64/promtool
 
 ############################################
 # Prometheus config
@@ -166,7 +168,7 @@ Description=Prometheus
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/prometheus \
+ExecStart=/opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus \
   --config.file=/opt/prometheus/prometheus.yml \
   --storage.tsdb.path=/opt/prometheus/data
 
@@ -217,7 +219,7 @@ tar -xzf alertmanager-0.27.0.linux-amd64.tar.gz
 
 mkdir -p /opt/alertmanager
 
-mv alertmanager-0.27.0.linux-amd64/* /opt/alertmanager/
+mv alertmanager-0.27.0.linux-amd64 /opt/alertmanager
 
 chmod +x /opt/alertmanager/alertmanager
 
@@ -273,6 +275,7 @@ EOF_SERVICE
 ############################################
 echo "=== STARTING ALERTMANAGER ==="
 
+mkdir -p /opt/alertmanager/data
 systemctl daemon-reload || true
 systemctl enable alertmanager.service || true
 systemctl start alertmanager.service || true
@@ -332,7 +335,7 @@ Description=CloudWatch Exporter
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml
+ExecStart=$(which java) -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml
 Restart=always
 
 [Install]

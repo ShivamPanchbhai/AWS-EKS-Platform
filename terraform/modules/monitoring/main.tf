@@ -71,14 +71,13 @@ resource "aws_instance" "monitoring" {
 ############################################
   user_data = <<-EOF
 #!/bin/bash
+exec > /var/log/user-data.log 2>&1
 set -x
 
 ############################################
 # Base setup
 ############################################
-dnf update -y || true
-dnf install -y amazon-ssm-agent wget java-17-amazon-corretto || true
-
+dnf install -y amazon-ssm-agent || true
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
 

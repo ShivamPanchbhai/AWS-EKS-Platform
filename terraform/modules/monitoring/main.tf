@@ -176,6 +176,7 @@ Restart=always
 WantedBy=multi-user.target
 EOP
 
+mkdir -p /opt/prometheus/data
 systemctl daemon-reload
 systemctl enable prometheus
 systemctl start prometheus

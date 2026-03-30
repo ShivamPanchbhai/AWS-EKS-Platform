@@ -71,7 +71,7 @@ resource "aws_instance" "monitoring" {
 ############################################
   user_data = <<-EOF
 #!/bin/bash
-exec > /var/log/user-data.log 2>&1
+exec > /var/log/user-data.log 2>/var/log/user-data-error.log
 set -x
 
 ############################################
@@ -172,7 +172,10 @@ ExecStart=/opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus \
   --config.file=/opt/prometheus/prometheus.yml \
   --storage.tsdb.path=/opt/prometheus/data
 
-Restart=always
+Restart=on-failure
+RestartSec=5
+StandardOutput=null
+StandardError=null
 
 [Install]
 WantedBy=multi-user.target
@@ -264,7 +267,10 @@ ExecStart=/opt/alertmanager/alertmanager \
   --config.file=/opt/alertmanager/alertmanager.yml \
   --storage.path=/opt/alertmanager/data
 
-Restart=always
+Restart=on-failure
+RestartSec=5
+StandardOutput=null
+StandardError=null
 
 [Install]
 WantedBy=multi-user.target
@@ -335,8 +341,11 @@ Description=CloudWatch Exporter
 After=network.target
 
 [Service]
-ExecStart=$(which java) -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml
-Restart=always
+ExecStart=/usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml
+Restart=on-failure
+RestartSec=5
+StandardOutput=null
+StandardError=null
 
 [Install]
 WantedBy=multi-user.target

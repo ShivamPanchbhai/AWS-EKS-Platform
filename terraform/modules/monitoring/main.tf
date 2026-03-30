@@ -79,7 +79,7 @@ echo "=== STARTING USER DATA ==="
 # Base setup
 ############################################
 dnf update -y
-dnf install -y amazon-ssm-agent wget
+dnf install -y amazon-ssm-agent wget java-17-amazon-corretto
 
 systemctl enable amazon-ssm-agent
 systemctl start amazon-ssm-agent
@@ -291,8 +291,6 @@ mkdir -p /opt/cloudwatch_exporter
 mv cloudwatch_exporter-0.15.0-jar-with-dependencies.jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar
 
 echo "=== INSTALLING JAVA ==="
-
-dnf install -y java-17-amazon-corretto
 
 ############################################
 # Create Cloudwatch config

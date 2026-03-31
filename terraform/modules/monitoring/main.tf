@@ -140,22 +140,19 @@ scrape_configs:
       - targets: ['localhost:9106']
 EOT
 ############################################
-
 # Alert rules
 ############################################
 cat <<-EOF_RULE > /opt/prometheus/alert.rules.yml
 groups:
-
-- name: test-alerts
-  rules:
-
-  - alert: InstanceDown
-    expr: up == 0
-    for: 1m
-    labels:
-    severity: critical
-    annotations:
-    summary: "Instance is down"
+  - name: test-alerts
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance is down"
 EOF_RULE
 
 ############################################

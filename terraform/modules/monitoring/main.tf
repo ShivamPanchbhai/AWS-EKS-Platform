@@ -151,21 +151,25 @@ groups:
           severity: critical
         annotations:
           summary: "ASG reached max capacity"
+
+      - alert: MonitoringInstanceRestart
+        expr: up{job="cloudwatch"} == 0 # job="cloudwatch" -> tied to your monitoring instance
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Monitoring instance might be restarting or being replaced by ASG"
 EOF_RULE
 
 ############################################
-
 # Install Grafana
-
 ############################################
 cd /tmp
 wget -q https://dl.grafana.com/oss/release/grafana-10.4.2-1.x86_64.rpm
 dnf install -y ./grafana-10.4.2-1.x86_64.rpm
 
 ############################################
-
 # Install Alertmanager
-
 ############################################
 cd /opt
 wget -q https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
@@ -195,7 +199,6 @@ receivers:
         send_resolved: true
 EOF_ALERT
 ############################################
-
 # Install CloudWatch Exporter
 ############################################
 cd /opt
@@ -226,9 +229,7 @@ metrics:
 EOF_CW
 
 ############################################
-
 # START SERVICES (NO SYSTEMD)
-
 ############################################
 
 echo "=== STARTING PROMETHEUS ==="
@@ -255,7 +256,6 @@ nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar \
   > /var/log/cloudwatch_exporter.log 2>&1 &
 
 ############################################
-
 # AUTO START ON REBOOT (CRON)
 ############################################
 

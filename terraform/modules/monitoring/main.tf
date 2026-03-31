@@ -109,9 +109,7 @@ mv prometheus-2.51.2.linux-amd64 /opt/prometheus
 chmod +x /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus
 
 ############################################
-
 # Prometheus config
-
 ############################################
 cat <<-EOT > /opt/prometheus/prometheus.yml
 global:
@@ -146,13 +144,13 @@ cat <<-EOF_RULE > /opt/prometheus/alert.rules.yml
 groups:
   - name: test-alerts
     rules:
-      - alert: InstanceDown
-        expr: up == 0
-        for: 1m
+      - alert: ASGAtMaxCapacity
+        expr: aws_autoscaling_group_desired_capacity == aws_autoscaling_group_max_size
+        for: 2m
         labels:
           severity: critical
         annotations:
-          summary: "Instance is down"
+          summary: "ASG reached max capacity"
 EOF_RULE
 
 ############################################

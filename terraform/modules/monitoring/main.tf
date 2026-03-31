@@ -181,24 +181,21 @@ chmod +x /opt/alertmanager/alertmanager
 
 cat <<-EOF_ALERT > /opt/alertmanager/alertmanager.yml
 global:
-smtp_smarthost: 'smtp.gmail.com:587'
-smtp_from: 'panchbhaishivam@gmail.com'
-smtp_auth_username: 'panchbhaishivam@gmail.com'
-smtp_auth_password: 'pxyvtzkaanarrwdf'
-smtp_require_tls: true
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'panchbhaishivam@gmail.com'
+  smtp_auth_username: 'panchbhaishivam@gmail.com'
+  smtp_auth_password: 'pxyvtzkaanarrwdf'
+  smtp_require_tls: true
 
 route:
-receiver: "email-alert"
+  receiver: "email-alert"
 
 receivers:
-
-- name: "email-alert"
-  email_configs:
-
-  - to: "panchbhaishivam@gmail.com"
-    send_resolved: true
+  - name: "email-alert"
+    email_configs:
+      - to: "panchbhaishivam@gmail.com"
+        send_resolved: true
 EOF_ALERT
-
 ############################################
 
 # Install CloudWatch Exporter

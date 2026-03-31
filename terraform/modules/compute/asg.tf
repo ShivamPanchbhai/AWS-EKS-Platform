@@ -14,6 +14,7 @@ resource "aws_autoscaling_group" "this" {
   min_size         = 2
   max_size         = 10
   desired_capacity = 2
+  default_instance_warmup = 30
 
   ######################################################
   # Multi-AZ Placement

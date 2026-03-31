@@ -116,9 +116,9 @@ chmod +x /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus
 # Prometheus config
 
 ############################################
-cat <<EOT > /opt/prometheus/prometheus.yml
+cat <<-EOT > /opt/prometheus/prometheus.yml
 global:
-scrape_interval: 15s
+ scrape_interval: 15s
 
 alerting:
 alertmanagers:
@@ -145,14 +145,13 @@ scrape_configs:
   static_configs:
 
   * targets: ['localhost:9106']
-    EOT
+EOT
 
 ############################################
 
 # Alert rules
-
 ############################################
-cat <<EOF_RULE > /opt/prometheus/alert.rules.yml
+cat <<-EOF_RULE > /opt/prometheus/alert.rules.yml
 groups:
 
 * name: test-alerts
@@ -165,7 +164,7 @@ groups:
     severity: critical
     annotations:
     summary: "Instance is down"
-    EOF_RULE
+EOF_RULE
 
 ############################################
 
@@ -191,7 +190,7 @@ mv alertmanager-0.27.0.linux-amd64/amtool /opt/alertmanager/
 
 chmod +x /opt/alertmanager/alertmanager
 
-cat <<EOF_ALERT > /opt/alertmanager/alertmanager.yml
+cat <<-EOF_ALERT > /opt/alertmanager/alertmanager.yml
 global:
 smtp_smarthost: 'smtp.gmail.com:587'
 smtp_from: 'panchbhaishivam@gmail.com'
@@ -209,12 +208,11 @@ receivers:
 
   * to: "panchbhaishivam@gmail.com"
     send_resolved: true
-    EOF_ALERT
+EOF_ALERT
 
 ############################################
 
 # Install CloudWatch Exporter
-
 ############################################
 cd /opt
 wget -q https://github.com/prometheus/cloudwatch_exporter/releases/download/v0.15.0/cloudwatch_exporter-0.15.0-jar-with-dependencies.jar
@@ -222,7 +220,7 @@ wget -q https://github.com/prometheus/cloudwatch_exporter/releases/download/v0.1
 mkdir -p /opt/cloudwatch_exporter
 mv cloudwatch_exporter-0.15.0-jar-with-dependencies.jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar
 
-cat <<EOF_CW > /opt/cloudwatch_exporter/config.yml
+cat <<-EOF_CW > /opt/cloudwatch_exporter/config.yml
 region: ap-south-1
 
 metrics:
@@ -241,7 +239,7 @@ metrics:
   aws_metric_name: CPUUtilization
   dimensions: [InstanceId]
   statistics: [Average]
-  EOF_CW
+EOF_CW
 
 ############################################
 

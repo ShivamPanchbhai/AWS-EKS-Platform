@@ -1,7 +1,5 @@
 ############################################
-
 # Security Group for Monitoring Instance
-
 ############################################
 resource "aws_security_group" "monitoring_sg" {
 
@@ -102,9 +100,7 @@ mkdir -p /opt/alertmanager/data
 echo "=== STARTING USER DATA ==="
 
 ############################################
-
 # Install Prometheus
-
 ############################################
 cd /tmp
 wget -q https://github.com/prometheus/prometheus/releases/download/v2.51.2/prometheus-2.51.2.linux-amd64.tar.gz
@@ -198,8 +194,8 @@ chmod +x /opt/alertmanager/alertmanager
 cat <<EOF_ALERT > /opt/alertmanager/alertmanager.yml
 global:
 smtp_smarthost: 'smtp.gmail.com:587'
-smtp_from: '[panchbhaishivam@gmail.com](mailto:panchbhaishivam@gmail.com)'
-smtp_auth_username: '[panchbhaishivam@gmail.com](mailto:panchbhaishivam@gmail.com)'
+smtp_from: 'panchbhaishivam@gmail.com'
+smtp_auth_username: 'panchbhaishivam@gmail.com'
 smtp_auth_password: 'pxyvtzkaanarrwdf'
 smtp_require_tls: true
 
@@ -211,7 +207,7 @@ receivers:
 * name: "email-alert"
   email_configs:
 
-  * to: "[panchbhaishivam@gmail.com](mailto:panchbhaishivam@gmail.com)"
+  * to: "panchbhaishivam@gmail.com"
     send_resolved: true
     EOF_ALERT
 
@@ -254,28 +250,25 @@ metrics:
 ############################################
 
 echo "=== STARTING PROMETHEUS ==="
-nohup /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus 
---config.file=/opt/prometheus/prometheus.yml 
---storage.tsdb.path=/opt/prometheus/data \
-
-> /var/log/prometheus.log 2>&1 &
+nohup /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus \
+  --config.file=/opt/prometheus/prometheus.yml \
+  --storage.tsdb.path=/opt/prometheus/data \
+  > /var/log/prometheus.log 2>&1 &
 
 echo "=== STARTING ALERTMANAGER ==="
-nohup /opt/alertmanager/alertmanager 
---config.file=/opt/alertmanager/alertmanager.yml 
---storage.path=/opt/alertmanager/data \
+nohup /opt/alertmanager/alertmanager \
+  --config.file=/opt/alertmanager/alertmanager.yml \
+  --storage.path=/opt/alertmanager/data \
+  > /var/log/alertmanager.log 2>&1 &
 
-> /var/log/alertmanager.log 2>&1 &
 
 echo "=== STARTING GRAFANA ==="
-nohup grafana-server > /var/log/grafana.log 2>&1 &
+nohup /usr/sbin/grafana-server > /var/log/grafana.log 2>&1 &
 
 echo "=== STARTING CLOUDWATCH EXPORTER ==="
-nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 
---config.file=/opt/cloudwatch_exporter/config.yml 
---web.listen-address=:9106 \
-
-> /var/log/cloudwatch_exporter.log 2>&1 &
+nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar \
+  9106 /opt/cloudwatch_exporter/config.yml \
+  > /var/log/cloudwatch_exporter.log 2>&1 &
 
 ############################################
 
@@ -287,9 +280,9 @@ nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar
 
 (crontab -l 2>/dev/null; echo "@reboot nohup /opt/alertmanager/alertmanager --config.file=/opt/alertmanager/alertmanager.yml --storage.path=/opt/alertmanager/data > /var/log/alertmanager.log 2>&1 &") | crontab -
 
-(crontab -l 2>/dev/null; echo "@reboot nohup grafana-server > /var/log/grafana.log 2>&1 &") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot nohup /usr/sbin/grafana-server > /var/log/grafana.log 2>&1 &") | crontab -
 
-(crontab -l 2>/dev/null; echo "@reboot nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar --config.file=/opt/cloudwatch_exporter/config.yml --web.listen-address=:9106 > /var/log/cloudwatch_exporter.log 2>&1 &") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot nohup /usr/bin/java -jar /opt/cloudwatch_exporter/cloudwatch_exporter.jar 9106 /opt/cloudwatch_exporter/config.yml > /var/log/cloudwatch_exporter.log 2>&1 &") | crontab -
 
 echo "=== USER DATA COMPLETE ==="
 

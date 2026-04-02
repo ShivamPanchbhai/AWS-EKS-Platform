@@ -79,13 +79,24 @@ resource "aws_launch_template" "docker_lt" {
     }
   }
 
-  ############################################
-  # User Data
-  ############################################
+############################################
+# User Data
+############################################
   user_data = base64encode(<<-EOF
 #!/bin/bash
 set -x
 
+############################################
+# Stress test script
+############################################
+mkdir -p /opt/stress
+cat << 'EOF' > /opt/stress/stress.sh
+#!/bin/bash
+yes > /dev/null & # Outputs: y y y y y ...Continuously, forever.
+yes > /dev/null & # & ->  runs in background
+EOF
+
+chmod +x /opt/stress/stress.sh
 ############################################
 # OS Update + Base Packages
 ############################################

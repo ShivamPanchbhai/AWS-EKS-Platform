@@ -62,7 +62,7 @@ instance_type = "t3.micro"
 subnet_id     = var.subnet_id
 
 root_block_device {
-    volume_size = 16  # default is 8GB, increase to 16GB
+    volume_size = 32 
     volume_type = "gp3"
   }
 

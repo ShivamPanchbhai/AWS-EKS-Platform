@@ -92,7 +92,7 @@ set -x
 mkdir -p /opt/stress
 cat << 'EOF' > /opt/stress/stress.sh
 #!/bin/bash
-yes > /dev/null & # Outputs: y y y y y ...Continuously, forever.
+yes > /dev/null &, # Outputs: y y y y y ...Continuously forever.
 yes > /dev/null & # & ->  runs in background
 EOF
 

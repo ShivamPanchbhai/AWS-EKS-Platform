@@ -145,7 +145,7 @@ groups:
   - name: test-alerts
     rules:
       - alert: ASGAtMaxCapacity
-        expr: aws_autoscaling_group_desired_capacity == aws_autoscaling_group_max_size
+        expr: aws_autoscaling_group_desired_capacity == on (AutoScalingGroupName) aws_autoscaling_group_max_size
         for: 2m
         labels:
           severity: critical

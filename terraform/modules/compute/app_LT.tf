@@ -95,17 +95,15 @@ resource "aws_launch_template" "docker_lt" {
 #!/bin/bash
 set -x
 
-
-
 ############################################
 # Stress test script
 ############################################
 mkdir -p /opt/stress
 cat << 'EOT' > /opt/stress/stress.sh
 #!/bin/bash
-yes > /dev/null & 
-yes > /dev/null & 
-EOT 
+yes > /dev/null &
+yes > /dev/null &
+EOT
 
 
 #yes > /dev/null & # & ->  runs in background & Outputs: y y y y y ...Continuously forever

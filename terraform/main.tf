@@ -128,7 +128,6 @@ module "compute" {
   source = "./modules/compute"
 
   ami_id    = data.aws_ami.amazon_linux.id
-  image_tag = var.image_tag
   region    = var.region
 
   ##########################################################

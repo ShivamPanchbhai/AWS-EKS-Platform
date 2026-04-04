@@ -90,7 +90,7 @@ resource "aws_launch_template" "docker_lt" {
 ############################################
 # User Data
 ############################################
-  user_data = base64encode(<<-EOF
+  user_data = base64encode(<<EOF
 #!/bin/bash
 set -x
 

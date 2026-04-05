@@ -23,6 +23,16 @@ resource "aws_autoscaling_group" "this" {
   vpc_zone_identifier = var.subnet_ids
 
   ######################################################
+  # Enabling AWS to publish ASG metrics to CloudWatch
+  ######################################################
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupMaxSize",
+    "GroupMinSize",
+    "GroupInServiceInstances",
+    "GroupTotalInstances"
+  ]
+  ######################################################
   # Attach ASG to ALB Target Group
   ######################################################
 

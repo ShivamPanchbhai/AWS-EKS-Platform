@@ -179,7 +179,6 @@ Alert pipeline validated end-to-end:
 → Stress test → ASG scales to max → ASGAtMaxCapacity fires
 → pending → firing → email notification → resolved
 
-```text
 ```
 
 ### 6. Operational Layer

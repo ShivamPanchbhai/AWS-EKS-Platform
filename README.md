@@ -45,7 +45,7 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 
 ## Architecture 
 
-![Architecture Diagram](./architecture-diagram.png)
+![Architecture Diagram](./architecture_diagram.png)
 
 
 How It Works (End-to-End Flow)

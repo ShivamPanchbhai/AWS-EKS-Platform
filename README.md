@@ -36,9 +36,9 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 • Multi-AZ high availability with Auto Scaling
 • Fully containerized runtime with automated bootstrapping
 • Safe destroy workflow for cost control
-* Dynamic image tag resolution via SSM Parameter Store at instance boot
-* Full observability stack with end-to-end validated alert pipeline
-* EC2 service discovery for Prometheus scraping
+• Dynamic image tag resolution via SSM Parameter Store at instance boot
+• Full observability stack with end-to-end validated alert pipeline
+• EC2 service discovery for Prometheus scraping
 ```
 
 ---

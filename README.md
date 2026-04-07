@@ -69,7 +69,7 @@ How It Works (End-to-End Flow)
    → Pulls image from ECR
    → Starts container
 
-8. Traffic flow:
+7. Traffic flow:
    Client → Route53 → ALB (HTTPS) → EC2 → Docker → FastAPI
 ---
 
@@ -125,6 +125,7 @@ Flow:
 • Build Docker image
 • Tag with commit SHA
 • Push to ECR
+* Write image tag to SSM Parameter Store
 ```
 
 #### Infra Pipeline
@@ -199,9 +200,7 @@ Purpose:
 ## Deployment Flow
 
 ```text
-Code Push → GitHub Actions → Build Image → Push to ECR
-→ Terraform Apply → Launch Template Update
-→ ASG Instance Refresh → New Instances Pull Image
+Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SSM → Terraform Apply → ASG Instance Refresh → New Instances fetch tag from SSM → Pull Image
 ```
 
 ---
@@ -223,7 +222,6 @@ Code Push → GitHub Actions → Build Image → Push to ECR
 ## Repository Structure
 
 ```text
-.
 .
 ├── .github/
 │   └── workflows/

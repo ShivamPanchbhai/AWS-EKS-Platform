@@ -127,7 +127,7 @@ Flow:
 • Build Docker image
 • Tag with commit SHA
 • Push to ECR
-* Write image tag to SSM Parameter Store
+• Write image tag to SSM Parameter Store
 ```
 
 #### Infra Pipeline
@@ -216,9 +216,9 @@ Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SS
 • Separate deploy and runtime roles
 • Private EC2 instances (no public exposure)
 • HTTPS enforced via ALB
-* IMDSv2 enforced on all EC2 instances
-* SSM-based instance access (no SSH)
-* SMTP credentials stored in SSM Parameter Store (SecureString)
+• IMDSv2 enforced on all EC2 instances
+• SSM-based instance access (no SSH)
+• SMTP credentials stored in SSM Parameter Store (SecureString)
 ```
 
 ---

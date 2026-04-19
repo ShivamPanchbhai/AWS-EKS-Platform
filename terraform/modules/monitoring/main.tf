@@ -177,6 +177,20 @@ SMTP_PASSWORD=$(aws ssm get-parameter \
   --query 'Parameter.Value' \
   --output text)
 
+############################################
+# This ensures workflow fails if passowrd field is empty
+# otherwise alertmanager will not trigger
+############################################
+
+if [ -z "$SMTP_PASSWORD" ]; then
+  echo "ERROR: SMTP password is empty, SSM fetch failed. Exiting."
+  exit 1
+fi
+
+############################################
+# Writing alertmanager config
+############################################
+
 cat <<-EOF_ALERT > /opt/alertmanager/alertmanager.yml
 global:
   smtp_smarthost: 'smtp.gmail.com:587'

@@ -227,9 +227,10 @@ Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SS
 │   └── workflows/
 │       ├── app_deploy.yml       # Build, push to ECR, write tag to SSM
 │       ├── infra.yml            # Terraform apply, ASG rolling refresh
-│       └── destroy.yml         # Safe infrastructure teardown
-├── bootstrap/
-│   └── main.tf                  # OIDC provider, IAM deploy role, S3 backend
+│       ├── destroy.yml          # Safe infrastructure teardown
+│       ├── bootstrap/
+│        └── main.tf             # OIDC provider, IAM deploy role, S3 backend, SMTP password storage
+│        └── variables.tf 
 ├── app/
 │   ├── main.py                  # FastAPI application
 │   ├── Dockerfile
@@ -263,6 +264,8 @@ Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SS
 • Secure authentication (OIDC)
 • Automated recovery (ASG)
 ```
+
+## Observability Validation
 
 ---
 

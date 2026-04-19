@@ -37,6 +37,7 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 • Fully containerized runtime with automated bootstrapping
 • Safe destroy workflow for cost control
 • Dynamic image tag resolution via SSM Parameter Store at instance boot
+• Secrets management via SSM Parameter Store (image tags + SMTP credentials)
 • Full observability stack with end-to-end validated alert pipeline
 • EC2 service discovery for Prometheus scraping
 ```
@@ -82,6 +83,7 @@ Establishes the **foundation and trust boundary**:
 * GitHub OIDC provider
 * IAM deploy role
 * S3 backend (Terraform state)
+* SMTP password stored as SecureString in SSM Parameter Store
 
 Key outcome:
 → Enables **secure CI/CD without static credentials**
@@ -179,6 +181,7 @@ Monitoring stack running on dedicated EC2:
 Alert pipeline validated end-to-end:
 → Stress test → ASG scales to max → ASGAtMaxCapacity fires
 → pending → firing → email notification → resolved
+→ Alertmanager configured with Gmail SMTP via SSM-managed credentials
 
 ```
 
@@ -215,6 +218,7 @@ Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SS
 • HTTPS enforced via ALB
 * IMDSv2 enforced on all EC2 instances
 * SSM-based instance access (no SSH)
+* SMTP credentials stored in SSM Parameter Store (SecureString)
 ```
 
 ---

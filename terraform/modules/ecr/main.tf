@@ -18,7 +18,6 @@ resource "aws_ecr_repository" "repo" {
 ############################################
 # Lifecycle Policy
 # - Keep max 5 images
-# - Expire images older than 30 days
 ############################################
 resource "aws_ecr_lifecycle_policy" "policy" {
   repository = aws_ecr_repository.repo.name

@@ -4,10 +4,12 @@
 ############################################
 
 resource "aws_security_group" "alb_sg" {
+  
   name        = "${var.service_name}-alb-sg"
   description = "Allow HTTP and HTTPS to ALB"
   vpc_id      =  var.vpc_id
-
+  
+  # Ingress is traffic coming into the resource
   ingress {
     from_port   = 80
     to_port     = 80
@@ -21,7 +23,7 @@ resource "aws_security_group" "alb_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  # egress is traffic going out
   egress {
     from_port   = 0
     to_port     = 0
@@ -39,7 +41,7 @@ resource "aws_lb" "this" {
   internal           = false
   load_balancer_type = "application"
   subnets            = var.subnet_ids
-  security_groups = [aws_security_group.alb_sg.id]
+  security_groups    = [aws_security_group.alb_sg.id]
 
   enable_deletion_protection = false
 }
@@ -125,6 +127,8 @@ resource "aws_route53_record" "alb_alias" {
   alias {
     name                   = aws_lb.this.dns_name   # Selects created ALB
     zone_id                = aws_lb.this.zone_id   # Required for alias
-    evaluate_target_health = true
+    evaluate_target_health = true  # adding this paramaeter so that route 53 can return ALB in DNS response
+                                   # otherwise health checks will be of no use
+
   }
 }

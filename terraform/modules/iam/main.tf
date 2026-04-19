@@ -42,12 +42,6 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# ECS compatibility (optional but fine)
-resource "aws_iam_role_policy_attachment" "ecs_ec2_role" {
-  role       = aws_iam_role.ec2_runtime.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-}
-
 #############################
 # IAM module for Monitoring instance
 #############################

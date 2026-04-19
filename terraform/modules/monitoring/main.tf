@@ -33,15 +33,6 @@ protocol    = "tcp"
 cidr_blocks = ["0.0.0.0/0"]
 }
 
-# SSH (fallback)
-
-ingress {
-from_port   = 22
-to_port     = 22
-protocol    = "tcp"
-cidr_blocks = ["0.0.0.0/0"] # restrict later
-}
-
 egress {
 from_port   = 0
 to_port     = 0
@@ -51,10 +42,9 @@ cidr_blocks = ["0.0.0.0/0"]
 }
 
 ############################################
-
 # Monitoring EC2 Instance
-
 ############################################
+
 resource "aws_instance" "monitoring" {
 
 ami           = var.ami_id
@@ -111,6 +101,7 @@ chmod +x /opt/prometheus/prometheus-2.51.2.linux-amd64/prometheus
 ############################################
 # Prometheus config
 ############################################
+
 cat <<-EOT > /opt/prometheus/prometheus.yml
 global:
   scrape_interval: 15s
@@ -124,6 +115,7 @@ rule_files:
   - /opt/prometheus/alert.rules.yml
 
 scrape_configs:
+
   - job_name: 'node-exporter'
     ec2_sd_configs:
       - region: ap-south-1
@@ -140,6 +132,7 @@ scrape_configs:
      - targets: ['localhost:9106']
 
 EOT
+
 ############################################
 # Alert rules
 ############################################
@@ -176,12 +169,20 @@ mv alertmanager-0.27.0.linux-amd64/amtool /opt/alertmanager/
 
 chmod +x /opt/alertmanager/alertmanager
 
+# Fetch SMTP password from SSM
+SMTP_PASSWORD=$(aws ssm get-parameter \
+  --name "/monitoring/smtp-password" \
+  --with-decryption \
+  --region ap-south-1 \
+  --query 'Parameter.Value' \
+  --output text)
+
 cat <<-EOF_ALERT > /opt/alertmanager/alertmanager.yml
 global:
   smtp_smarthost: 'smtp.gmail.com:587'
   smtp_from: 'panchbhaishivam@gmail.com'
   smtp_auth_username: 'panchbhaishivam@gmail.com'
-  smtp_auth_password: 'pxyvtzkaanarrwdf'
+  smtp_auth_password: '$SMTP_PASSWORD'
   smtp_require_tls: true
 
 route:
@@ -193,6 +194,7 @@ receivers:
       - to: "panchbhaishivam@gmail.com"
         send_resolved: true
 EOF_ALERT
+
 ############################################
 # Install CloudWatch Exporter
 ############################################
@@ -225,7 +227,6 @@ metrics:
     aws_dimensions: [InstanceId]
     aws_statistics: [Average]
 EOF_CW
-
 
 ############################################
 # START SERVICES (NO SYSTEMD)

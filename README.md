@@ -36,7 +36,6 @@ It implements a **fully automated, immutable deployment pipeline** where infrast
 • Multi-AZ high availability with Auto Scaling
 • Fully containerized runtime with automated bootstrapping
 • Safe destroy workflow for cost control
-• Dynamic image tag resolution via SSM Parameter Store at instance boot
 • Secrets management via SSM Parameter Store (image tags + SMTP credentials)
 • Full observability stack with end-to-end validated alert pipeline
 • EC2 service discovery for Prometheus scraping
@@ -177,6 +176,7 @@ Monitoring stack running on dedicated EC2:
 - Alertmanager - email alerting
 - CloudWatch Exporter - ASG capacity metrics
 - Node Exporter - host-level metrics on all app instances
+- All components configured as systemd services with auto-restart on crash
 
 Alert pipeline validated end-to-end:
 → Stress test → ASG scales to max → ASGAtMaxCapacity fires
@@ -227,14 +227,15 @@ Code Push → GitHub Actions → Build Image → Push to ECR → Write tag to SS
 
 ```text
 .
+├── .gitignore                   # Excludes bootstrap/terraform.tfvars from version control
 ├── .github/
 │   └── workflows/
 │       ├── app_deploy.yml       # Build, push to ECR, write tag to SSM
 │       ├── infra.yml            # Terraform apply, ASG rolling refresh
 │       ├── destroy.yml          # Safe infrastructure teardown
-│       ├── bootstrap/
-│        └── main.tf             # OIDC provider, IAM deploy role, S3 backend, SMTP password storage
-│        └── variables.tf 
+│       └── bootstrap/
+│           ├── main.tf          # OIDC provider, IAM deploy role, S3 backend, SMTP password storage
+│           └── variables.tf
 ├── app/
 │   ├── main.py                  # FastAPI application
 │   ├── Dockerfile

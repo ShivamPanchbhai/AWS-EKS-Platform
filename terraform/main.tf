@@ -8,11 +8,15 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0.0"
+    }
   }
 
   backend "s3" {
     bucket = "shivam-terraform-state-306991549269"
-    key    = "ec2/terraform.tfstate"
+    key    = "eks/terraform.tfstate"
     region = "ap-south-1"
   }
 }
@@ -26,37 +30,21 @@ provider "aws" {
 }
 
 ############################################################
-# NETWORKING (Default VPC)
+# MODULE: NETWORKING
+# Custom VPC replacing default VPC
+# Public subnets for ALB, private subnets for EKS nodes
 ############################################################
 
-data "aws_vpc" "default" {
-  default = true
-}
+module "networking" {
+  source = "./modules/networking"
 
-# All subnets (used for compute)
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-############################################################
-# AMI LOOKUP
-############################################################
-
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
+  service_name = "ehr"
+  cluster_name = "ehr-eks-cluster"
 }
 
 ############################################################
 # MODULE: ECR
+# Unchanged - EKS pulls from same registry
 ############################################################
 
 module "ecr" {
@@ -66,15 +54,8 @@ module "ecr" {
 }
 
 ############################################################
-# MODULE: IAM
-############################################################
-
-module "iam" {
-  source = "./modules/iam"
-}
-
-############################################################
 # MODULE: ACM
+# Unchanged - same TLS certificate
 ############################################################
 
 module "acm" {
@@ -83,78 +64,42 @@ module "acm" {
 }
 
 ############################################################
-# MODULE: ALB (PUBLIC ENTRY LAYER)
+# MODULE: IAM
+# EKS cluster role and node group role added
+# IRSA roles moved to separate module below
 ############################################################
 
-module "alb" {
-  source = "./modules/alb"
-
-  vpc_id       = data.aws_vpc.default.id
-  service_name = "ehr"
-
-  # These are PUBLIC subnets (ALB requires public)
-  subnet_ids = data.aws_subnets.default.ids
-
-  certificate_arn = module.acm.certificate_arn
-  domain_name     = "shivam.store"
+module "iam" {
+  source = "./modules/iam"
 }
 
 ############################################################
-# MODULE: MONITORING
+# MODULE: EKS
+# Replaces compute module
+# Worker nodes run in private subnets
 ############################################################
 
-module "monitoring" {
+module "eks" {
+  source = "./modules/eks"
 
-  source = "./modules/monitoring"
-
-  vpc_id = data.aws_vpc.default.id
-
-  ##########################################################
-  # KEY FIX: reuse ALB subnet (already public)
-  ##########################################################
-  subnet_id = data.aws_subnets.default.ids[0]
-
-  ami_id = data.aws_ami.amazon_linux.id
-
-  prometheus_instance_profile_name = module.iam.prometheus_instance_profile_name
-  prometheus_role_name             = module.iam.prometheus_role_name
+  cluster_name            = "ehr-eks-cluster"
+  vpc_id                  = module.networking.vpc_id
+  vpc_cidr                = module.networking.vpc_cidr
+  private_subnet_ids      = module.networking.private_subnet_ids
+  eks_cluster_role_arn    = module.iam.eks_cluster_role_arn
+  eks_node_group_role_arn = module.iam.eks_node_group_role_arn
 }
 
 ############################################################
-# MODULE: COMPUTE (APP LAYER)
+# MODULE: IRSA
+# Runs after EKS because it needs OIDC provider outputs
+# Creates IAM roles for Load Balancer Controller
+# and External Secrets Operator pods
 ############################################################
 
-module "compute" {
-  source = "./modules/compute"
+module "irsa" {
+  source = "./modules/irsa"
 
-  ami_id    = data.aws_ami.amazon_linux.id
-  region    = var.region
-
-  ##########################################################
-  # Networking
-  ##########################################################
-  vpc_id     = data.aws_vpc.default.id
-  subnet_ids = data.aws_subnets.default.ids
-
-  ##########################################################
-  # ALB integration
-  ##########################################################
-  target_group_arn      = module.alb.target_group_arn
-  alb_security_group_id = module.alb.alb_security_group_id
-
-  ##########################################################
-  # IAM + ECR
-  ##########################################################
-  instance_profile_name = module.iam.instance_profile_name
-  repository_url        = module.ecr.repository_url
-
-  ##########################################################
-  # Service
-  ##########################################################
-  service_name = "ehr"
-
-  ##########################################################
-  # Internal VPC access (for monitoring scraping)
-  ##########################################################
-  vpc_cidr = data.aws_vpc.default.cidr_block
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
 }

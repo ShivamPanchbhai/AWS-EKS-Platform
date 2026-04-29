@@ -1,0 +1,94 @@
+############################################################
+# APPLICATION VALUES
+############################################################
+
+replicaCount: 2
+
+image:
+  # Placeholder - CI/CD pipeline overrides this with actual ECR URL and tag
+  repository: ""
+  tag: ""
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+############################################################
+# INGRESS
+# AWS Load Balancer Controller reads these annotations
+# and provisions an ALB automatically
+############################################################
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: ""  # Populated from root main.tf output
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+  host: "shivam.store"
+
+############################################################
+# RESOURCE LIMITS
+# t3.medium nodes have 2 vCPU, 4GB RAM
+# These limits ensure no single pod starves the node
+############################################################
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+############################################################
+# HORIZONTAL POD AUTOSCALER
+# Mirrors existing ASG CPU target tracking policy
+############################################################
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 60
+
+############################################################
+# PROBES
+# Same /health endpoint used by ALB in existing project
+############################################################
+
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    failureThreshold: 3
+
+############################################################
+# SERVICE ACCOUNT
+# IRSA annotation added in template
+############################################################
+
+serviceAccount:
+  name: ehr-app
+
+############################################################
+# NAMESPACE
+############################################################
+
+namespace: ehr

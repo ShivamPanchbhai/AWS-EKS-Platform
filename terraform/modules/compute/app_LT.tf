@@ -121,6 +121,23 @@ dnf update -y
 dnf install -y docker amazon-ssm-agent awscli
 
 ############################################
+# Configure Docker log rotation
+# Learned from production inode exhaustion incident
+# Cron jobs are lost when ASG terminates instances
+# Daemon config is baked into every instance at boot
+############################################
+
+cat <<-EOT > /etc/docker/daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOT
+
+############################################
 # Enable Services
 ############################################
 systemctl enable docker

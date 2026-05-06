@@ -8,10 +8,6 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0.0"
     }
-    tls = {
-      source  = "hashicorp/tls"
-      version = ">= 4.0.0"
-    }
   }
 
   backend "s3" {
@@ -66,7 +62,7 @@ module "acm" {
 ############################################################
 # MODULE: IAM
 # EKS cluster role and node group role added
-# IRSA roles moved to separate module below
+# Pod Identity handles pod-level AWS access
 ############################################################
 
 module "iam" {
@@ -88,18 +84,4 @@ module "eks" {
   private_subnet_ids      = module.networking.private_subnet_ids
   eks_cluster_role_arn    = module.iam.eks_cluster_role_arn
   eks_node_group_role_arn = module.iam.eks_node_group_role_arn
-}
-
-############################################################
-# MODULE: IRSA
-# Runs after EKS because it needs OIDC provider outputs
-# Creates IAM roles for Load Balancer Controller
-# and External Secrets Operator pods
-############################################################
-
-module "irsa" {
-  source = "./modules/irsa"
-
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  oidc_provider_url = module.eks.oidc_provider_url
 }

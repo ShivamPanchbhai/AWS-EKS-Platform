@@ -85,3 +85,17 @@ module "eks" {
   eks_cluster_role_arn    = module.iam.eks_cluster_role_arn
   eks_node_group_role_arn = module.iam.eks_node_group_role_arn
 }
+
+############################################################
+# MODULE: POD IDENTITY
+# Replaces IRSA for pod-level AWS access
+# Installs Pod Identity Agent as EKS addon (DaemonSet)
+# Links IAM roles to Kubernetes service accounts directly
+# No OIDC provider or trust policy complexity needed
+############################################################
+
+module "pod_identity" {
+  source = "./modules/pod-identity"
+
+  cluster_name = module.eks.cluster_name
+}

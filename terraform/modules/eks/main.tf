@@ -111,7 +111,7 @@ resource "aws_security_group" "node_group" {
 }
 
 ############################################################
-# MANAGED NODE GROUP
+# MANAGED APP NODE GROUP
 # Worker EC2s managed by EKS
 # Runs in private subnets
 ############################################################
@@ -181,5 +181,44 @@ resource "aws_launch_template" "node_group" {
       Name       = "${var.cluster_name}-node"
       Monitoring = "node-exporter"
     }
+  }
+}
+
+############################################################
+# MONITORING NODE GROUP
+# Dedicated node for Prometheus, Alertmanager, Grafana
+# Taint prevents app pods from landing here
+############################################################
+
+resource "aws_eks_node_group" "monitoring" {
+  cluster_name    = aws_eks_cluster.this.name
+  node_group_name = "${var.cluster_name}-monitoring-node-group"
+  node_role_arn   = var.eks_node_group_role_arn
+  subnet_ids      = var.private_subnet_ids
+  instance_types  = [var.node_instance_type]
+
+  launch_template {
+    id      = aws_launch_template.node_group.id
+    version = aws_launch_template.node_group.latest_version
+  }
+
+  scaling_config {
+    min_size     = 1
+    max_size     = 1
+    desired_size = 1
+  }
+
+  taint {
+    key    = "dedicated"
+    value  = "monitoring"
+    effect = "NO_SCHEDULE"
+  }
+
+  update_config {
+    max_unavailable = 1
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-monitoring-node-group"
   }
 }

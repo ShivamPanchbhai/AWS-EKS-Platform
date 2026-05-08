@@ -1,20 +1,46 @@
+############################################################
+# INGRESS
+# # LBC reads this Kubernetes Ingress resource and provisions the ALB in AWS automatically
+# ingressClassName: alb tells LBC to handle this Ingress
+############################################################
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   annotations:
+    ############################################################
+    # Annotations pulled from values.yaml
+    # Includes ALB scheme, target type, TLS cert ARN,
+    # SSL redirect, and healthcheck configuration
+    ############################################################
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
+
 spec:
+  ############################################################
+  # Replaces deprecated kubernetes.io/ingress.class annotation
+  # Tells LBC this Ingress belongs to it
+  ############################################################
+  ingressClassName: alb
+
   rules:
+    ############################################################
+    # Host-based routing
+    # Routes all traffic for shivam.store to the app service
+    ############################################################
     - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
+              ############################################################
+              # Forwards traffic to ClusterIP service on port 80
+              # Service then routes to pods on targetPort 8000
+              ############################################################
               service:
                 name: {{ .Release.Name }}
                 port:

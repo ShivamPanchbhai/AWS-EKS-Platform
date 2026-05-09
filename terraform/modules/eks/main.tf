@@ -21,8 +21,6 @@ resource "aws_eks_cluster" "this" {
   ############################################################
   enabled_cluster_log_types = ["api", "audit", "authenticator"]
 
-  depends_on = [var.eks_cluster_role_arn]
-
   tags = {
     Name = var.cluster_name
   }
@@ -154,6 +152,7 @@ resource "aws_eks_node_group" "this" {
 ############################################################
 # LAUNCH TEMPLATE FOR NODE GROUP
 # Enforces IMDSv2 on worker nodes
+# Attaches node group SG alongside EKS cluster primary SG
 # Mirrors security standard from existing EC2 setup
 ############################################################
 
@@ -163,6 +162,19 @@ resource "aws_launch_template" "node_group" {
   metadata_options {
     http_tokens = "required"
   }
+
+  ############################################################
+  # Explicitly attach both SGs:
+  # 1. node_group SG  - custom rules (ALB, Prometheus, pod-to-pod)
+  # 2. EKS cluster primary SG - auto-created by EKS for cluster
+  #    comms; specifying vpc_security_group_ids in a launch
+  #    template overrides EKS auto-attachment, so we must
+  #    include it manually
+  ############################################################
+  vpc_security_group_ids = [
+    aws_security_group.node_group.id,
+    aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  ]
 
   block_device_mappings {
     device_name = "/dev/xvda"

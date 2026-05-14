@@ -18,7 +18,7 @@ service:
 ############################################################
 # INGRESS
 # AWS Load Balancer Controller reads these annotations
-# and provisions an ALB automatically
+# and provisions an ALB automatically with health checks integrated
 ############################################################
 
 ingress:
@@ -82,8 +82,14 @@ hpa:
   targetCPUUtilizationPercentage: 60
 
 ############################################################
-# PROBES
-# Same /health endpoint used by ALB in existing project
+# Liveness probe
+# Kubelet hits the health endpoint every 10 seconds. If it gets 3 consecutive failures, 
+# it does not "kill the pod" permanently -- it restarts the container inside the pod.
+
+# Readiness probe
+# Kubelet waits 15 seconds after container start before it begins checking. Then it hits the health endpoint every 5 seconds. 
+# If it fails, it does not restart anything -- it removes the pod from the Service's endpoint list, 
+# meaning the load balancer stops sending traffic to it. Once checks pass again, the pod is added back.
 ############################################################
 
 probes:

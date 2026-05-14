@@ -39,7 +39,27 @@ ingress:
 ############################################################
 # RESOURCE LIMITS
 # t3.medium nodes have 2 vCPU, 4GB RAM
+# t3.medium with 2 vCPU (2000m total), we could theoretically schedule
+# up to 20 pods based on CPU requests alone (20 x 100m = 2000m), 
+# but each pod can burst up to 500m when needed. 
+# Memory works the same way -- 4GB total, 
+# each pod guaranteed 128Mi but capped at 512Mi.
+
 # These limits ensure no single pod starves the node
+
+# 100m means 100 millicores which is 0.1 of a single CPU core. 
+# So the pod is guaranteed 10% of one CPU core and can burst 
+# up to 50%(500m)if the node has spare capacity.
+
+# Requests 
+#what the pod is guaranteed and what Kubernetes uses to decide 
+# which node to schedule the pod on. If a node doesn't have 100m CPU 
+# and 128Mi memory free, the pod won't land there.
+
+# Limits
+# the hard ceiling. If the pod tries to use more than 500m CPU,
+# Kubernetes throttles it. If it tries to use more than 512Mi memory,
+# Kubernetes kills the pod with an OOMKilled error.
 ############################################################
 
 resources:

@@ -1,32 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
+  # Release name set during `helm install`. Acts as the identifier for all resources.
   name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Release.Name }}
+
 spec:
+  # Number of pod replicas to run. HPA will override this dynamically at runtime.
   replicas: {{ .Values.replicaCount }}
+
+  # Selector tells the Deployment which pods to manage.
+  # Must match the labels defined in pod template below.
   selector:
     matchLabels:
       app: {{ .Release.Name }}
+
+  # Pod template -- this is the blueprint for every pod this Deployment creates.
   template:
     metadata:
       labels:
         app: {{ .Release.Name }}
+
     spec:
+      # ServiceAccount the pod runs as.
+      # Pod Identity uses this to bind the correct IAM role for AWS API access.
       serviceAccountName: {{ .Values.serviceAccount.name }}
 
       containers:
         - name: {{ .Release.Name }}
+
+          # Image pulled from ECR. Repository and tag both come from values.yaml.
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          # IfNotPresent -- skips pulling if image already exists on the node.
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           ports:
+            # FastAPI app listens on port 8000 inside the container.
             - containerPort: 8000
 
           ############################################################
           # RESOURCE LIMITS
+          # requests -- guaranteed resources reserved on the node for this pod.
+          # limits -- hard ceiling. CPU gets throttled, memory causes OOMKill.
           ############################################################
           resources:
             requests:
@@ -38,25 +57,32 @@ spec:
 
           ############################################################
           # LIVENESS PROBE
-          # Kubernetes restarts the pod if this fails
+          # Checks if the container is alive and not deadlocked.
+          # Kubelet restarts the container after failureThreshold consecutive failures.
+          # Does NOT remove pod from Service endpoints -- only restarts the container.
           ############################################################
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.liveness.path }}
               port: 8000
+            # Wait this long after container starts before first liveness check.
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            # How often kubelet hits the liveness endpoint.
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            # Consecutive failures before container restart is triggered.
             failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
 
           ############################################################
           # READINESS PROBE
-          # Pod only receives traffic when this passes
-          # Prevents traffic hitting pods that are still starting up
+          # Checks if the pod is ready to serve traffic.
+          # On failure, pod is removed from Service endpoints until checks pass again.
+          # Does NOT restart the container -- only gates traffic.
           ############################################################
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}
               port: 8000
+            # Shorter window -- readiness can start checking before liveness.
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
             failureThreshold: {{ .Values.probes.readiness.failureThreshold }}

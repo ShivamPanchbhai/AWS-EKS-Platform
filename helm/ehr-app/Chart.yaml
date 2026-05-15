@@ -1,6 +1,22 @@
+# Helm chart API version. v2 is required for Helm 3.
+# v1 is legacy (Helm 2) — always use v2 for new charts.
 apiVersion: v2
+
+# Name of the chart. Must match the chart directory name exactly.
+# Used as prefix in generated resource names (e.g. ehr-app-deployment).
 name: ehr-app
+
+# Human-readable description of what this chart deploys.
 description: EHR FastAPI application Helm chart
+
+# Chart type: "application" deploys workloads, "library" only provides reusable helpers.
 type: application
+
+# Chart version (SemVer). Bump this when you change the chart itself,
+# not when your app changes. Used by Helm and ArgoCD to fetch specific chart versions.
 version: 0.1.0
+
+# Version of the actual application this chart deploys.
+# Purely informational — visible in `helm list` under APP VERSION.
+# Does not affect what gets deployed.
 appVersion: "1.0.0"

@@ -1,21 +1,35 @@
+# HPA is only created if enabled in values.yaml (hpa.enabled: true).
+# If false, Helm skips this entire file and no HPA resource is created.
 {{- if .Values.hpa.enabled }}
+
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
+
 spec:
+  # Tells HPA which resource to scale.
+  # It watches this Deployment and adjusts its replica count.
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ .Release.Name }}
+
+  # HPA will never go below minReplicas or above maxReplicas regardless of load.
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}
+
   metrics:
     - type: Resource
       resource:
+        # Metric HPA watches to make scaling decisions.
         name: cpu
         target:
           type: Utilization
+          # If average CPU across all pods exceeds this percentage,
+          # HPA adds more pods. If it drops below, HPA removes pods.
           averageUtilization: {{ .Values.hpa.targetCPUUtilizationPercentage }}
+
+# Closing the if block -- everything above only renders if hpa.enabled is true.
 {{- end }}

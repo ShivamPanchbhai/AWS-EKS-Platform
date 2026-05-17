@@ -5,11 +5,23 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Release.Name }}
+
 spec:
+  # Service type pulled from values.yaml.
+  # ClusterIP -- internal only, no external access.
+  # NodePort -- exposes on each node's IP at a static port.
+  # LoadBalancer -- provisions an AWS ALB for external access.
   type: {{ .Values.service.type }}
+
+  # Selector tells the Service which pods to route traffic to.
+  # Must match the labels defined in deployment.yaml pod template.
   selector:
     app: {{ .Release.Name }}
+
   ports:
+    # port -- the port this Service listens on inside the cluster.
+    # targetPort -- the port your FastAPI container is actually running on (8000).
+    # Traffic hits port, Service forwards it to targetPort on the pod.
     - port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.targetPort }}
       protocol: TCP

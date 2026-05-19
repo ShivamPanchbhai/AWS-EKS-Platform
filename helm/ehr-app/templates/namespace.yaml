@@ -1,4 +1,7 @@
+# Namespace creates an isolated environment inside the cluster for your app.
+# All resources (Deployment, Service, HPA etc.) are scoped to this namespace.
 apiVersion: v1
 kind: Namespace
 metadata:
+  # Namespace name pulled from values.yaml.
   name: {{ .Values.namespace }}

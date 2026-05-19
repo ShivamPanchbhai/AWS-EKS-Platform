@@ -2,7 +2,7 @@
 # If false, Helm skips this entire file and no HPA resource is created.
 {{- if .Values.hpa.enabled }}
 
-apiVersion: autoscaling/v2
+apiVersion: autoscaling/v2 # v2 is the current API version and supports multiple metrics like CPU and memory together.
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Release.Name }}

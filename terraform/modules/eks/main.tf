@@ -234,3 +234,14 @@ resource "aws_eks_node_group" "monitoring" {
     Name = "${var.cluster_name}-monitoring-node-group"
   }
 }
+############################################################
+# EBS CSI DRIVER ADDON
+# Enables Prometheus to provision EBS volumes for persistent
+# metric storage -- without this pod restarts lose all data
+############################################################
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name             = aws_eks_cluster.this.name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.31.0-eksbuild.1"
+  service_account_role_arn = var.ebs_csi_role_arn
+}

@@ -155,3 +155,16 @@ resource "aws_eks_pod_identity_association" "external_secrets" {
   service_account = "external-secrets"
   role_arn        = aws_iam_role.external_secrets.arn
 }
+############################################################
+# POD IDENTITY ASSOCIATION: EBS CSI DRIVER
+# Links the EBS CSI IAM role to its Kubernetes service account
+# Allows the EBS CSI driver to provision and attach EBS volumes
+# IAM role is defined in the IAM module
+############################################################
+
+resource "aws_eks_pod_identity_association" "ebs_csi" {
+  cluster_name    = var.cluster_name
+  namespace       = "kube-system"
+  service_account = "ebs-csi-controller-sa"
+  role_arn        = var.ebs_csi_role_arn
+}

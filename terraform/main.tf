@@ -84,6 +84,7 @@ module "eks" {
   private_subnet_ids      = module.networking.private_subnet_ids
   eks_cluster_role_arn    = module.iam.eks_cluster_role_arn
   eks_node_group_role_arn = module.iam.eks_node_group_role_arn
+  ebs_csi_role_arn        = module.iam.ebs_csi_role_arn
 }
 
 ############################################################
@@ -98,4 +99,5 @@ module "pod_identity" {
   source = "./modules/pod-identity"
 
   cluster_name = module.eks.cluster_name
+  ebs_csi_role_arn = module.iam.ebs_csi_role_arn
 }

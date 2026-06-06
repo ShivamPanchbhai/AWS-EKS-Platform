@@ -1,0 +1,163 @@
+############################################################
+# KUBE-PROMETHEUS-STACK OVERRIDE VALUES
+# Community chart -- these values override the chart defaults
+# Deploys Prometheus, Alertmanager, Grafana, and Node Exporter
+# All monitoring components pinned to the dedicated monitoring node
+############################################################
+
+############################################################
+# PROMETHEUS
+############################################################
+prometheus:
+  prometheusSpec:
+
+    ############################################################
+    # PIN TO MONITORING NODE
+    # Toleration allows Prometheus to land on the tainted monitoring node
+    # NodeAffinity ensures it specifically targets the monitoring node
+    ############################################################
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "monitoring"
+        effect: "NoSchedule"
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "dedicated"
+                  operator: "In"
+                  values:
+                    - "monitoring"
+
+    ############################################################
+    # PERSISTENT STORAGE
+    # EBS CSI driver provisions a gp3 EBS volume automatically
+    # Metrics survive Prometheus pod restarts
+    ############################################################
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+    ############################################################
+    # RETENTION
+    # How long Prometheus keeps metrics before discarding them
+    ############################################################
+    retention: 15d
+
+    ############################################################
+    # SCRAPE INTERVAL
+    # How often Prometheus scrapes metrics from targets
+    ############################################################
+    scrapeInterval: "30s"
+
+############################################################
+# ALERTMANAGER
+# Routes alerts fired by Prometheus to Gmail via SMTP
+############################################################
+alertmanager:
+  alertmanagerSpec:
+
+    # Pin to monitoring node
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "monitoring"
+        effect: "NoSchedule"
+
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "dedicated"
+                  operator: "In"
+                  values:
+                    - "monitoring"
+
+  config:
+    global:
+      # Gmail SMTP server for sending alert emails
+      smtp_smarthost: "smtp.gmail.com:587"
+      smtp_from: "your-email@gmail.com"
+      # Use Gmail App Password -- not your actual Gmail password
+      # Generate at: Google Account > Security > App Passwords
+      smtp_auth_username: "your-email@gmail.com"
+      smtp_auth_password: "your-app-password"
+      smtp_require_tls: true
+
+    route:
+      # Default receiver for all alerts
+      receiver: "email"
+      # Wait 5 minutes before firing an alert to avoid noise
+      group_wait: 5m
+      # Wait 10 minutes before sending a new alert for the same group
+      group_interval: 10m
+      # Repeat alert every 3 hours if issue is not resolved
+      repeat_interval: 3h
+
+    receivers:
+      - name: "email"
+        email_configs:
+          - to: "your-email@gmail.com"
+            send_resolved: true  # Notify when alert resolves as well
+
+############################################################
+# GRAFANA
+# Visualization layer for Prometheus metrics
+############################################################
+grafana:
+  enabled: true
+
+  # Pin to monitoring node
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "monitoring"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "dedicated"
+                operator: "In"
+                values:
+                  - "monitoring"
+
+  # Default admin password -- change this before deploying
+  adminPassword: "changeme"
+
+  ############################################################
+  # PERSISTENT STORAGE FOR GRAFANA
+  # Persists dashboards and datasource config across pod restarts
+  ############################################################
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 5Gi
+
+############################################################
+# NODE EXPORTER
+# Runs as a DaemonSet on every node
+# Scrapes node-level metrics -- CPU, memory, disk, network
+# No node pinning needed since it runs on all nodes by design
+############################################################
+nodeExporter:
+  enabled: true
+
+############################################################
+# KUBE STATE METRICS
+# Scrapes Kubernetes object metrics -- pod status, deployment
+# replicas, HPA state etc.
+############################################################
+kubeStateMetrics:
+  enabled: true

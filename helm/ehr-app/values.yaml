@@ -1,8 +1,11 @@
+
+# All templates reference values from here
+
 ############################################################
 # APPLICATION VALUES
 ############################################################
 
-replicaCount: 2
+replicaCount: 2 # minimum two pods for high availability across app nodes
 
 image:
   # Placeholder - CI/CD pipeline overrides this with actual ECR URL and tag

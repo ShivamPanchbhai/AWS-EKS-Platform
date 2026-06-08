@@ -168,3 +168,69 @@ resource "aws_eks_pod_identity_association" "ebs_csi" {
   service_account = "ebs-csi-controller-sa"
   role_arn        = var.ebs_csi_role_arn
 }
+############################################################
+# IAM ROLE: CLUSTER AUTOSCALER
+# Allows Cluster Autoscaler pod to describe and modify
+# Auto Scaling Groups to add and remove worker nodes
+############################################################
+
+resource "aws_iam_role" "cluster_autoscaler" {
+  name = "cluster-autoscaler-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+        Action = [
+          "sts:AssumeRole",
+          "sts:TagSession"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "cluster_autoscaler" {
+  name = "cluster-autoscaler-policy"
+  role = aws_iam_role.cluster_autoscaler.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          # Read ASG state to make scaling decisions
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:DescribeScalingActivities",
+          "autoscaling:DescribeTags",
+          # Modify ASG to add or remove nodes
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup",
+          # Needed to find node groups
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:DescribeInstanceTypes"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+############################################################
+# POD IDENTITY ASSOCIATION: CLUSTER AUTOSCALER
+# Links the IAM role to the Cluster Autoscaler service account
+############################################################
+
+resource "aws_eks_pod_identity_association" "cluster_autoscaler" {
+  cluster_name    = var.cluster_name
+  namespace       = "kube-system"
+  service_account = "cluster-autoscaler"
+  role_arn        = aws_iam_role.cluster_autoscaler.arn
+}

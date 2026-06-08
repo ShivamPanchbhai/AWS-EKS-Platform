@@ -65,7 +65,10 @@ prometheus:
 alertmanager:
   alertmanagerSpec:
 
-    # Pin to monitoring node
+    # Mount the Kubernetes Secret created by ESO into the Alertmanager pod
+    secrets:
+      - alertmanager-smtp-secret
+
     tolerations:
       - key: "dedicated"
         operator: "Equal"
@@ -84,30 +87,24 @@ alertmanager:
 
   config:
     global:
-      # Gmail SMTP server for sending alert emails
       smtp_smarthost: "smtp.gmail.com:587"
-      smtp_from: "your-email@gmail.com"
-      # Use Gmail App Password -- not your actual Gmail password
-      # Generate at: Google Account > Security > App Passwords
-      smtp_auth_username: "your-email@gmail.com"
-      smtp_auth_password: "your-app-password"
+      smtp_from: "panchbhaishivam@gmail.com"
+      smtp_auth_username: "panchbhaishivam@gmail.com"
       smtp_require_tls: true
+      # Reads password from the mounted secret file
+      smtp_auth_password_file: /etc/alertmanager/secrets/alertmanager-smtp-secret/smtp_password
 
     route:
-      # Default receiver for all alerts
       receiver: "email"
-      # Wait 5 minutes before firing an alert to avoid noise
       group_wait: 5m
-      # Wait 10 minutes before sending a new alert for the same group
       group_interval: 10m
-      # Repeat alert every 3 hours if issue is not resolved
       repeat_interval: 3h
 
     receivers:
       - name: "email"
         email_configs:
-          - to: "your-email@gmail.com"
-            send_resolved: true  # Notify when alert resolves as well
+          - to: "panchbhaishivam@gmail.com"
+            send_resolved: true
 
 ############################################################
 # GRAFANA

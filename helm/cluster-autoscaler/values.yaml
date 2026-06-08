@@ -1,0 +1,65 @@
+############################################################
+# CLUSTER AUTOSCALER OVERRIDE VALUES
+# Community chart -- these values override the chart defaults
+# Automatically scales worker nodes up and down based on
+# pod scheduling demand and node utilization
+############################################################
+
+############################################################
+# CORE CONFIGURATION
+############################################################
+autoDiscovery:
+  # Cluster Autoscaler discovers node groups automatically
+  # via AWS tags on the ASG -- no manual node group config needed
+  clusterName: ehr-eks-cluster
+
+awsRegion: ap-south-1
+
+############################################################
+# SERVICE ACCOUNT
+# Must match the service account name in Pod Identity Association
+############################################################
+rbac:
+  serviceAccount:
+    name: cluster-autoscaler
+    annotations:
+      # Tells the pod which IAM role to assume via Pod Identity
+      eks.amazonaws.com/role-arn: ""  # Handled by Pod Identity -- leave empty
+
+############################################################
+# PIN TO APP NODE
+# Cluster Autoscaler is a cluster management component
+# It should run on app nodes, not the monitoring node
+############################################################
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: "dedicated"
+              operator: "NotIn"
+              values:
+                - "monitoring"
+
+############################################################
+# SCALING BEHAVIOUR
+# Controls how aggressively the autoscaler adds and removes nodes
+############################################################
+extraArgs:
+  # Wait 10 minutes of underutilization before removing a node
+  # Prevents thrashing -- adding and removing nodes too frequently
+  scale-down-delay-after-add: 10m
+
+  # How long a node must be underutilized before scale down
+  scale-down-unneeded-time: 10m
+
+  # Node is considered underutilized if CPU and memory
+  # requests are below 50% of node capacity
+  scale-down-utilization-threshold: "0.5"
+
+  # Skip nodes that have pods without a replication controller
+  # Prevents removing nodes with standalone pods
+  skip-nodes-with-local-storage: "false"
+  skip-nodes-with-system-pods: "true"

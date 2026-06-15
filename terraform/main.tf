@@ -85,6 +85,7 @@ module "eks" {
   eks_cluster_role_arn    = module.iam.eks_cluster_role_arn
   eks_node_group_role_arn = module.iam.eks_node_group_role_arn
   ebs_csi_role_arn        = module.iam.ebs_csi_role_arn
+  node_max_size           = var.node_max_size
 }
 
 ############################################################
@@ -100,4 +101,19 @@ module "pod_identity" {
 
   cluster_name = module.eks.cluster_name
   ebs_csi_role_arn = module.iam.ebs_csi_role_arn
+}
+
+############################################################
+# MODULE: CLOUDWATCH
+# SNS topic + alarm for app node group nearing max capacity
+# Early warning so node_max_size can be raised before
+# Cluster Autoscaler hits its ceiling
+############################################################
+
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+
+  asg_name    = module.eks.node_group_asg_name
+  max_size    = var.node_max_size
+  alarm_email = "panchbhaishivam@gmail.com"
 }

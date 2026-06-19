@@ -1,0 +1,61 @@
+############################################################
+# EXTERNAL SECRETS OPERATOR (ESO) OVERRIDE VALUES
+# Community chart -- installs the ESO controller itself
+# This is what reads SecretStore and ExternalSecret resources
+# and actually creates Kubernetes Secrets from them
+############################################################
+
+############################################################
+# SERVICE ACCOUNT
+# Must match the service account name referenced in the
+# Pod Identity Association for ESO in the Pod Identity module
+############################################################
+serviceAccount:
+  create: true
+  name: external-secrets
+
+############################################################
+# NODE PLACEMENT
+# ESO is a cluster utility, runs on app nodes
+# Not pinned to monitoring node -- no tolerations needed
+############################################################
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: "dedicated"
+              operator: "NotIn"
+              values:
+                - "monitoring"
+
+############################################################
+# RESOURCE LIMITS
+# ESO is lightweight -- small footprint is sufficient
+############################################################
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
+############################################################
+# WEBHOOK
+# ESO ships with a validating webhook to check SecretStore
+# and ExternalSecret resources before they're applied
+# Enabled by default -- keep it on for safety
+############################################################
+webhook:
+  port: 9443
+
+############################################################
+# CERT CONTROLLER
+# Manages TLS certs for the webhook automatically
+# Required for the webhook to function
+############################################################
+certController:
+  enabled: true

@@ -55,7 +55,7 @@ ingress:
 # up to 50%(500m)if the node has spare capacity.
 
 # Requests 
-#what the pod is guaranteed and what Kubernetes uses to decide 
+# what the pod is guaranteed and what Kubernetes uses to decide 
 # which node to schedule the pod on. If a node doesn't have 100m CPU 
 # and 128Mi memory free, the pod won't land there.
 
@@ -96,13 +96,15 @@ hpa:
 ############################################################
 
 probes:
+
   liveness:
     path: /health
     initialDelaySeconds: 30
     periodSeconds: 10
     failureThreshold: 3
+
   readiness:
-    path: /health
+    path: /ready
     initialDelaySeconds: 15
     periodSeconds: 5
     failureThreshold: 3

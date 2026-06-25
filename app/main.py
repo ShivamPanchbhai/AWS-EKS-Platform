@@ -8,11 +8,20 @@ from typing import Optional
 # This object is referenced in the Dockerfile when starting uvicorn (main:app)
 app = FastAPI()
 
-# Health check endpoint used by ALB
-# If this endpoint returns 200 OK, the service is considered healthy
+# Health check endpoint -- used by liveness probe
+# Confirms the process is alive and responding
+# Kubelet restarts the container if this fails
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+# Readiness check endpoint -- used by readiness probe
+# Confirms the app is ready to serve traffic
+# Kubernetes removes pod from Service endpoints if this fails, without restarting it
+# For a stateful app this would check DB connections, caches, downstream dependencies etc.
+@app.get("/ready")
+def ready():
+    return {"status": "ready"}
 
 # Endpoint to receive ECG data from clients
 # Accepts file upload along with patient metadata via form fields

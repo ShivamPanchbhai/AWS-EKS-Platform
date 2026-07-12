@@ -145,7 +145,7 @@ grafana:
 ############################################################
 # NODE EXPORTER
 # Runs as a DaemonSet on every node
-# Scrapes node-level metrics -- CPU, memory, disk, network
+# Exposes node-level metrics -- CPU, memory, disk, network -- for Prometheus to scrape
 # No node pinning needed since it runs on all nodes by design
 ############################################################
 nodeExporter:
@@ -153,8 +153,8 @@ nodeExporter:
 
 ############################################################
 # KUBE STATE METRICS
-# Scrapes Kubernetes object metrics -- pod status, deployment
-# replicas, HPA state etc.
+# Exposes Kubernetes object metrics -- pod status, deployment
+# replicas, HPA state etc. -- for Prometheus to scrape
 ############################################################
 kubeStateMetrics:
   enabled: true

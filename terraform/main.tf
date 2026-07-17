@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.31.0"
+    }
   }
 
   backend "s3" {
@@ -116,4 +120,50 @@ module "cloudwatch" {
   asg_name    = module.eks.node_group_asg_name
   max_size    = var.node_max_size
   alarm_email = "panchbhaishivam@gmail.com"
+}
+
+############################################################
+# EKS CLUSTER AUTH TOKEN
+# Generates a short-lived token so Terraform can authenticate
+# to the Kubernetes API using the kubernetes provider below
+############################################################
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+############################################################
+# KUBERNETES PROVIDER
+# Lets Terraform manage K8s objects directly, not just AWS resources
+# Auth uses EKS cluster endpoint + CA cert + the token above
+############################################################
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
+############################################################
+# STORAGE CLASS (moved from ehr-app Helm chart)
+# gp3 default class, used by kube-prometheus-stack for
+# Prometheus and Grafana persistent EBS volumes
+# depends_on ensures EBS CSI driver addon exists first
+############################################################
+resource "kubernetes_storage_class_v1" "gp3" {
+  metadata {
+    name = "gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Retain"
+  volume_binding_mode = "WaitForFirstConsumer"
+
+  parameters = {
+    type      = "gp3"
+    encrypted = "true"
+  }
+
+  depends_on = [module.eks]
 }

@@ -59,7 +59,8 @@ extraArgs:
   # requests are below 50% of node capacity
   scale-down-utilization-threshold: "0.5"
 
-  # Skip nodes that have pods without a replication controller
-  # Prevents removing nodes with standalone pods
+  # Allows CA to remove nodes even if they run pods using local storage (emptyDir, hostPath)
   skip-nodes-with-local-storage: "false"
+
+  # Protects nodes running kube-system pods without a PodDisruptionBudget from removal
   skip-nodes-with-system-pods: "true"

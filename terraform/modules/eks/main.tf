@@ -1,4 +1,22 @@
 ############################################################
+# KEY VALUES REFERENCED IN THIS FILE
+#
+# 443        HTTPS port -- EKS control plane API server
+# -1         AWS shorthand for "all protocols" (egress rules,
+#            and the pod-to-pod ingress rule)
+# 0.0.0.0/0  CIDR for "anywhere on the internet" (egress only)
+# 0          from_port/to_port paired with protocol -1 means
+#            "all ports" -- AWS convention, not a real port
+# 1025       Start of the ephemeral port range AWS recommends
+#            opening for control plane -> kubelet traffic
+# 65535      End of that range, also the max possible port
+#            number (16-bit limit)
+# 8000       ehr-app's container port -- ALB routes here
+# 9100       Node Exporter's metrics port -- Prometheus scrapes
+#            this on every node
+############################################################
+
+############################################################
 # EKS CLUSTER
 ############################################################
 
@@ -35,7 +53,8 @@ resource "aws_security_group" "cluster" {
   name   = "${var.cluster_name}-cluster-sg"
   vpc_id = var.vpc_id
 
-  # Allow worker nodes to talk to control plane
+  # Port 443 -- VPC-wide CIDR, not scoped to worker nodes
+  # specifically (known gap, not yet tightened)
   ingress {
     from_port   = 443
     to_port     = 443
@@ -43,6 +62,7 @@ resource "aws_security_group" "cluster" {
     cidr_blocks = [var.vpc_cidr]
   }
 
+  # All protocols, all ports, anywhere -- standard open egress
   egress {
     from_port   = 0
     to_port     = 0
@@ -64,7 +84,8 @@ resource "aws_security_group" "node_group" {
   name   = "${var.cluster_name}-node-sg"
   vpc_id = var.vpc_id
 
-  # Nodes talk to each other (pod to pod)
+  # Nodes talk to each other (pod to pod) -- all protocols,
+  # all ports, self-referencing only
   ingress {
     from_port = 0
     to_port   = 0
@@ -72,7 +93,10 @@ resource "aws_security_group" "node_group" {
     self      = true
   }
 
-  # Control plane to nodes
+  # Control plane to nodes -- full ephemeral range (1025-65535)
+  # AWS recommends this range, not just kubelet's 10250, since
+  # webhooks and extension API servers can register on other
+  # ports too. Source is the cluster SG itself, properly scoped.
   ingress {
     from_port       = 1025
     to_port         = 65535
@@ -80,7 +104,8 @@ resource "aws_security_group" "node_group" {
     security_groups = [aws_security_group.cluster.id]
   }
 
-  # ALB to pods (app port)
+  # ALB to pods (app port) -- VPC-wide CIDR, not scoped to just
+  # the ALB specifically (known gap, not yet tightened)
   ingress {
     from_port   = 8000
     to_port     = 8000
@@ -88,7 +113,9 @@ resource "aws_security_group" "node_group" {
     cidr_blocks = [var.vpc_cidr]
   }
 
-  # Prometheus scraping Node Exporter
+  # Prometheus scraping Node Exporter -- VPC-wide CIDR, not
+  # scoped to just the monitoring node (known gap, not yet
+  # tightened)
   ingress {
     from_port   = 9100
     to_port     = 9100
@@ -96,6 +123,7 @@ resource "aws_security_group" "node_group" {
     cidr_blocks = [var.vpc_cidr]
   }
 
+  # All protocols, all ports, anywhere -- standard open egress
   egress {
     from_port   = 0
     to_port     = 0
@@ -144,8 +172,15 @@ resource "aws_eks_node_group" "this" {
     max_unavailable = 1
   }
 
+  ############################################################
+  # TAGS
+  # k8s.io/cluster-autoscaler/* tags let autoDiscovery find
+  # this ASG -- without them CA has nothing to scan
+  ############################################################
   tags = {
-    Name = "${var.cluster_name}-node-group"
+    Name                                           = "${var.cluster_name}-node-group"
+    "k8s.io/cluster-autoscaler/enabled"             = "true"
+    "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
   }
 }
 
@@ -220,6 +255,17 @@ resource "aws_eks_node_group" "monitoring" {
     desired_size = 1
   }
 
+  ############################################################
+  # LABEL
+  # Matches the taint key/value so nodeAffinity rules (kube-
+  # prometheus-stack, cluster-autoscaler) can actually select
+  # or exclude this node -- taints and labels are independent,
+  # EKS doesn't derive one from the other
+  ############################################################
+  labels = {
+    dedicated = "monitoring"
+  }
+
   taint {
     key    = "dedicated"
     value  = "monitoring"
@@ -234,10 +280,12 @@ resource "aws_eks_node_group" "monitoring" {
     Name = "${var.cluster_name}-monitoring-node-group"
   }
 }
+
 ############################################################
 # EBS CSI DRIVER ADDON
-# Enables Prometheus to provision EBS volumes for persistent
-# metric storage -- without this pod restarts lose all data
+# Enables dynamic EBS volume provisioning for pods requesting
+# PersistentVolumeClaims -- without it, stateful workloads
+# like Prometheus lose all data on pod restart
 ############################################################
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name             = aws_eks_cluster.this.name

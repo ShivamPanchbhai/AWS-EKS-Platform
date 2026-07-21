@@ -139,7 +139,12 @@ resource "aws_iam_role_policy" "external_secrets_ssm" {
           "ssm:GetParameters",
           "ssm:GetParametersByPath"
         ]
-        Resource = "arn:aws:ssm:*:*:parameter/ehr/*"
+        # Covers both app secrets (/ehr/*) and the Alertmanager
+        # SMTP password (/monitoring/*)
+        Resource = [
+          "arn:aws:ssm:*:*:parameter/ehr/*",
+          "arn:aws:ssm:*:*:parameter/monitoring/*"
+        ]
       }
     ]
   })

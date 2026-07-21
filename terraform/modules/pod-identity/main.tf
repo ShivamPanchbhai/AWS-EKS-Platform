@@ -202,27 +202,47 @@ resource "aws_iam_role_policy" "cluster_autoscaler" {
     Version = "2012-10-17"
     Statement = [
       {
+        ############################################################
+        # READ-ONLY ACTIONS
+        # AWS doesn't support resource-level restriction on these
+        # Describe calls, so Resource stays "*" -- this is expected,
+        # not a scoping gap
+        ############################################################
         Effect = "Allow"
         Action = [
-          # Read ASG state to make scaling decisions
           "autoscaling:DescribeAutoScalingGroups",
           "autoscaling:DescribeAutoScalingInstances",
           "autoscaling:DescribeLaunchConfigurations",
           "autoscaling:DescribeScalingActivities",
           "autoscaling:DescribeTags",
-          # Modify ASG to add or remove nodes
-          "autoscaling:SetDesiredCapacity",
-          "autoscaling:TerminateInstanceInAutoScalingGroup",
-          # Needed to find node groups
           "ec2:DescribeLaunchTemplateVersions",
           "ec2:DescribeInstanceTypes"
         ]
         Resource = "*"
+      },
+      {
+        ############################################################
+        # MUTATING ACTIONS
+        # Scoped via the same cluster-autoscaler tag autoDiscovery
+        # already uses, so this role can only change the ASG that
+        # carries that tag (the app node group), not any other ASG
+        # in the account
+        ############################################################
+        Effect = "Allow"
+        Action = [
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "autoscaling:ResourceTag/k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+          }
+        }
       }
     ]
   })
 }
-
 ############################################################
 # POD IDENTITY ASSOCIATION: CLUSTER AUTOSCALER
 # Links the IAM role to the Cluster Autoscaler service account

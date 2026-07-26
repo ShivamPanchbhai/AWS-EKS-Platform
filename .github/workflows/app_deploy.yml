@@ -32,7 +32,7 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: arn:aws:iam::306991549269:role/github-actions-deploy-role
+          role-to-assume: arn:aws:iam::306991549269:role/github-actions-eks-deploy-role
           aws-region: ap-south-1
 
       ########################################################

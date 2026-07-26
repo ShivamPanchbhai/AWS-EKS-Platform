@@ -57,3 +57,8 @@ variable "node_desired_size" {
   type        = number
   default     = 2
 }
+
+variable "ebs_csi_role_arn" {
+  description = "IAM role ARN for the EBS CSI driver addon, passed in from the IAM module"
+  type        = string
+}

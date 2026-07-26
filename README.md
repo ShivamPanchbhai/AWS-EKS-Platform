@@ -37,7 +37,7 @@ It follows **production-grade infrastructure and security practices** built usin
 
 ## Architecture
 
-*(diagram to be added)*
+![Architecture Diagram](./images/architecture_diagram.png)
 
 ### How It Works (Current, End-to-End Flow)
 

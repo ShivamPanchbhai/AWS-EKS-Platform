@@ -130,9 +130,16 @@ grafana:
                 values:
                   - "monitoring"
 
-  # Default admin password -- change this before deploying
-  adminPassword: "changeme"
-
+############################################################
+  # ADMIN CREDENTIALS
+  # Pulled from the Kubernetes Secret ESO creates from SSM,
+  # instead of a hardcoded password
+  ############################################################
+  admin:
+    existingSecret: "grafana-admin-secret"
+    userKey: admin-user
+    passwordKey: admin-password
+    
   ############################################################
   # PERSISTENT STORAGE FOR GRAFANA
   # Persists dashboards and datasource config across pod restarts

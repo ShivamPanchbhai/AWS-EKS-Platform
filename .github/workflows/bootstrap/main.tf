@@ -126,3 +126,15 @@ resource "aws_ssm_parameter" "smtp_password" {
   type  = "SecureString"
   value = var.smtp_password
 }
+
+resource "aws_ssm_parameter" "grafana_admin_user" {
+  name  = "/monitoring/grafana-admin-user"
+  type  = "String"
+  value = "admin"
+}
+
+resource "aws_ssm_parameter" "grafana_admin_password" {
+  name  = "/monitoring/grafana-admin-password"
+  type  = "SecureString"
+  value = var.grafana_admin_password
+}

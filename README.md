@@ -16,6 +16,7 @@
 <br/>
 
 ![Infra Deploy](https://github.com/ShivamPanchbhai/AWS-EKS-Platform/actions/workflows/infra.yml/badge.svg)
+![Destroy](https://github.com/ShivamPanchbhai/AWS-EKS-Platform/actions/workflows/destroy.yml/badge.svg)
 
 This project rebuilds, as an independent portfolio project, a platform originally built at Oracle. The original implementation stayed with Oracle as proprietary IP, so this repo is a from-scratch recreation of that architecture, continued after a 2025 layoff.
 
@@ -217,6 +218,12 @@ This is an actively evolving portfolio project, and these gaps are tracked delib
 ```
 
 ---
+## Observability Validation
+
+**1. This confirms the CloudWatch alarm's subscription and delivery mechanics are wired correctly, the SNS topic, the email subscription, and the confirmation flow all worked as expected on the first real apply.**
+!(./images/CloudWatch_ alarm_ subscription.png)
+!(./images/delivery_mechanics.png)
+
 
 ## Tech Stack
 

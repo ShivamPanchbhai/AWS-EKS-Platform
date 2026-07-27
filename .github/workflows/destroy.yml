@@ -33,13 +33,13 @@ jobs:
     steps:
 
       ######################################################
-      # 1️⃣ Checkout repository (Terraform configuration)
+      # 1️) Checkout repository (Terraform configuration)
       ######################################################
       - name: Checkout repository
         uses: actions/checkout@v7
 
       ######################################################
-      # 2️⃣ Authenticate to AWS via OIDC
+      # 2️) Authenticate to AWS via OIDC
       # Uses pre-created github-actions-deploy-role
       # No static credentials involved
       ######################################################
@@ -50,20 +50,20 @@ jobs:
           aws-region: ap-south-1
 
       ######################################################
-      # 3️⃣ Setup Terraform CLI
+      # 3️)  Setup Terraform CLI
       ######################################################
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
 
       ######################################################
-      # 4️⃣ Initialize Terraform backend (S3 state)
+      # 4️) Initialize Terraform backend (S3 state)
       ######################################################
       - name: Terraform Init
         run: terraform init
         working-directory: terraform
 
       ######################################################
-      # 5️⃣ Destroy all resources managed by Terraform
+      # 5️) Destroy all resources managed by Terraform
       # -auto-approve is safe here because we already
       # enforced manual confirmation above.
       ######################################################

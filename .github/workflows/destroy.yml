@@ -36,7 +36,7 @@ jobs:
       # 1️⃣ Checkout repository (Terraform configuration)
       ######################################################
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       ######################################################
       # 2️⃣ Authenticate to AWS via OIDC
@@ -44,7 +44,7 @@ jobs:
       # No static credentials involved
       ######################################################
       - name: Configure AWS credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::306991549269:role/github-actions-eks-deploy-role
           aws-region: ap-south-1

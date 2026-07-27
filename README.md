@@ -220,10 +220,14 @@ This is an actively evolving portfolio project, and these gaps are tracked delib
 ---
 ## Observability Validation
 
-**1. This confirms the CloudWatch alarm's subscription and delivery mechanics are wired correctly, the SNS topic, the email subscription, and the confirmation flow all worked as expected on the first real apply.**
-!(./images/CloudWatch_ alarm_ subscription.png)
-!(./images/delivery_mechanics.png)
+**1. CloudWatch alarm subscription confirmed**
 
+This confirms the CloudWatch alarm's subscription and delivery mechanics are wired correctly, the SNS topic, the email subscription, and the confirmation flow all worked as expected on the first real apply.
+
+![CloudWatch alarm subscription](./images/cloudwatch_alarm_subscription.png)
+![Subscription confirmed](./images/subscription_confirmed.png)
+
+What this doesn't confirm is the alarm actually firing. That needs the app node group genuinely pushed toward its capacity limit.
 
 ## Tech Stack
 

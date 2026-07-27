@@ -15,6 +15,8 @@
 
 <br/>
 
+![Infra Deploy](https://github.com/ShivamPanchbhai/AWS-EKS-Platform/actions/workflows/infra.yml/badge.svg)
+
 This project rebuilds, as an independent portfolio project, a platform originally built at Oracle. The original implementation stayed with Oracle as proprietary IP, so this repo is a from-scratch recreation of that architecture, continued after a 2025 layoff.
 
 It follows **production-grade infrastructure and security practices** built using Terraform and Helm, with EKS Pod Identity replacing static credentials or OIDC trust policies throughout.

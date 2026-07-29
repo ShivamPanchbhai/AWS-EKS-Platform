@@ -40,7 +40,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 ########################################################
-# GitHub Actions Deploy Role — EC2 project
+# GitHub Deploy IAM Role - EC2 project
 ########################################################
 
 resource "aws_iam_role" "github_actions_role" {

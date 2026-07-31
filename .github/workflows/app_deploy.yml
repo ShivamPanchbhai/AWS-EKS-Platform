@@ -71,16 +71,4 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/ehr-service:${{ github.sha }}
-
-      ########################################################
-      # 8) write tag to SSM | otherwise 1 instance will always be unhealthy
-      ########################################################
-      - name: Store image tag in SSM
-        run: |
-          aws ssm put-parameter \
-          --name "/ehr/image-tag" \
-          --value ${{ github.sha }} \
-          --type String \
-          --overwrite
-
     

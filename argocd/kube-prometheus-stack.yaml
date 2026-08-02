@@ -1,0 +1,36 @@
+############################################################
+# ARGOCD APPLICATION: KUBE-PROMETHEUS-STACK
+# Multi-source: pulls the chart from its upstream Helm repo,
+# but the values.yaml comes from our own repo instead
+############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    # Source 1: the actual chart, straight from prometheus-community
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 87.21.0
+      helm:
+        valueFiles:
+          # $values references source 2 below, by its ref name
+          - $values/helm/kube-prometheus-stack/values.yaml
+
+    # Source 2: our own repo, only used to supply the values file
+    - repoURL: https://github.com/ShivamPanchbhai/AWS-EKS-Platform.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

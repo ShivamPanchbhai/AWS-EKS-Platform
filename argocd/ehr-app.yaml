@@ -1,0 +1,32 @@
+############################################################
+# ARGOCD APPLICATION: EHR-APP
+# Tells ArgoCD what to watch in Git and where to deploy it
+############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Application objects live in ArgoCD's own namespace,
+  # not the namespace the app itself deploys into
+  name: ehr-app
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    # Public repo, no credentials needed
+    repoURL: https://github.com/ShivamPanchbhai/AWS-EKS-Platform.git
+    targetRevision: main
+    # Path to the chart within the repo
+    path: helm/ehr-app
+
+  destination:
+    # Same cluster ArgoCD itself runs in
+    server: https://kubernetes.default.svc
+    namespace: ehr
+
+  syncPolicy:
+    automated:
+      # Auto-applies new commits, this is the actual GitOps part
+      prune: true
+      # Reverts any manual changes made directly to the cluster
+      selfHeal: true

@@ -1,0 +1,33 @@
+############################################################
+# ARGOCD APPLICATION: CLUSTER-AUTOSCALER
+# Multi-source: chart from its upstream Helm repo, values
+# from our own repo, same pattern as kube-prometheus-stack
+############################################################
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-autoscaler
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://kubernetes.github.io/autoscaler
+      chart: cluster-autoscaler
+      targetRevision: 9.7.0
+      helm:
+        valueFiles:
+          - $values/helm/cluster-autoscaler/values.yaml
+
+    - repoURL: https://github.com/ShivamPanchbhai/AWS-EKS-Platform.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = ">= 2.31.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.0.0"
+    }
   }
 
   backend "s3" {
@@ -21,6 +25,13 @@ terraform {
   }
 }
 
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+    token                  = data.aws_eks_cluster_auth.this.token
+  }
+}
 ############################################################
 # AWS PROVIDER
 ############################################################
@@ -164,6 +175,23 @@ resource "kubernetes_storage_class_v1" "gp3" {
     type      = "gp3"
     encrypted = "true"
   }
+
+  depends_on = [module.eks]
+}
+
+############################################################
+# ARGOCD
+# Installed via Terraform's Helm provider, same cluster
+# nothing needed since ArgoCD's own default tolerations
+# already keep it off the tainted monitoring node
+############################################################
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = "10.2.1"
+  namespace        = "argocd"
+  create_namespace = true
 
   depends_on = [module.eks]
 }

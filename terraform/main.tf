@@ -3,35 +3,101 @@
 ############################################################
 
 terraform {
+
+  ##########################################################
+  # REQUIRED PROVIDERS
+  # Declares which provider plugins Terraform needs, and the
+  # version range allowed for each. Without this block,
+  # Terraform wouldn't know which plugin to use for any
+  # resource type in this project, or could silently grab an
+  # unpredictable version
+  ##########################################################
+  
   required_providers {
+
+    # AWS provider -- creates and manages every AWS resource
+    # in this project (EKS, IAM, S3, CloudWatch, etc.). Without
+    # it, none of the aws_* resources could exist at all.
+
     aws = {
       source  = "hashicorp/aws"
       version = ">= 5.0.0"
     }
+
+    # Kubernetes provider -- lets Terraform talk to the
+    # cluster's own API directly, used for the StorageClass.
+    # Without it, that resource has no provider to run against.
+
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.31.0"
     }
+
+    # Helm provider -- lets Terraform install Helm charts
+    # directly, used for the ArgoCD release. Pinned to 3.x
+    # without this provider, the helm_release resource has nothing to
+    # run against.
+
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.0.0"
+      version = "~> 3.0"
     }
-  }
+
+  } # required_providers_ends
+  
+  ##########################################################
+  # REMOTE STATE BACKEND
+  # Tells Terraform to store its state file in this S3 bucket
+  # instead of on whatever machine happens to run the apply.
+  # This matters specifically because GitHub Actions runners
+  # start fresh and empty every single run, with no memory of
+  # anything created before. Without a remote backend, every
+  # workflow run would have no record of existing resources
+  # and would try to recreate everything from scratch, causing
+  # duplicate-resource errors, or worse.
+  ##########################################################
 
   backend "s3" {
     bucket = "shivam-terraform-state-306991549269"
     key    = "eks/terraform.tfstate"
     region = "ap-south-1"
   }
-}
+
+} # terraform_ends 
+
+############################################################
+# HELM PROVIDER CONFIGURATION
+# Configures how the Helm provider actually connects to the
+# cluster it needs to install charts into. Reuses the same
+# cluster outputs and auth token the kubernetes provider
+# already uses, rather than a kubeconfig file, since a fresh
+# GitHub Actions runner wouldn't have one. Without this block,
+# the helm_release resource wouldn't know which cluster to
+# connect to, and apply would fail immediately.
+############################################################
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
+    # API server endpoint -- without this, Helm has no address
+    # to send requests to at all
+    
     host                   = module.eks.cluster_endpoint
+
+    # Cluster's CA certificate -- without this, TLS verification
+    # fails, since there's no way to confirm it's actually
+    # talking to the real cluster
+    
     cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+
+    # Short-lived auth token -- without this, every request gets
+    # rejected as unauthenticated, regardless of a valid host
+    # and certificate
+
     token                  = data.aws_eks_cluster_auth.this.token
   }
+
 }
+
 ############################################################
 # AWS PROVIDER
 ############################################################

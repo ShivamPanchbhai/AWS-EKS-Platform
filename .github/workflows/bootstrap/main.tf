@@ -108,6 +108,21 @@ resource "aws_iam_role_policy_attachment" "github_eks_admin_attach" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
+############################################################
+# PERSONAL IAM USER
+# Dedicated user for day-to-day CloudShell and console work,
+# replacing routine use of the root account
+############################################################
+
+resource "aws_iam_user" "shivam" {
+  name = "shivam"
+}
+
+resource "aws_iam_user_policy_attachment" "shivam_admin" {
+  user       = aws_iam_user.shivam.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
 ########################################################
 # Terraform State Bucket
 ########################################################

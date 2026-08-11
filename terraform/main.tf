@@ -261,3 +261,24 @@ resource "helm_release" "argocd" {
 
   depends_on = [module.eks]
 }
+
+############################################################
+# CLUSTER ACCESS: SHIVAM'S IAM USER
+# Registers the dedicated IAM user as a recognized identity
+# for this cluster, then grants it full admin access, so
+# kubectl works from CloudShell without touching root
+############################################################
+resource "aws_eks_access_entry" "shivam" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::306991549269:user/shivam"
+}
+
+resource "aws_eks_access_policy_association" "shivam_admin" {
+  cluster_name  = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::306991549269:user/shivam"
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+}

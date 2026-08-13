@@ -14,7 +14,7 @@ spec:
   sources:
     - repoURL: https://kubernetes.github.io/autoscaler
       chart: cluster-autoscaler
-      targetRevision: 9.7.0
+      targetRevision: 9.59.0
       helm:
         valueFiles:
           - $values/helm/cluster-autoscaler/values.yaml

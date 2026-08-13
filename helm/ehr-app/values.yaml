@@ -6,24 +6,20 @@
 ############################################################
 
 replicaCount: 2 # minimum two pods for high availability across app nodes
-
 image:
   # Placeholder - CI/CD pipeline overrides this with actual ECR URL and tag
   repository: ""
-  tag: ""
+  tag: "449902341204c3accac07bc927ea8ef70d1b82d4"
   pullPolicy: Always
-
 service:
   type: ClusterIP
   port: 80
   targetPort: 8000
-
 ############################################################
 # INGRESS
 # AWS Load Balancer Controller reads these annotations
 # and provisions an ALB automatically with health checks integrated
 ############################################################
-
 ingress:
   enabled: true
   annotations:
@@ -31,14 +27,13 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}, {"HTTP": 80}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/certificate-arn: ""  # Populated from root main.tf output
+    alb.ingress.kubernetes.io/certificate-arn: "" # Populated from root main.tf output
     alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
   host: "shivam.store"
-
 ############################################################
 # RESOURCE LIMITS
 # t3.medium nodes have 2 vCPU, 4GB RAM
@@ -64,7 +59,6 @@ ingress:
 # Kubernetes throttles it. If it tries to use more than 512Mi memory,
 # Kubernetes kills the pod with an OOMKilled error.
 ############################################################
-
 resources:
   requests:
     cpu: "100m"
@@ -72,18 +66,15 @@ resources:
   limits:
     cpu: "500m"
     memory: "512Mi"
-
 ############################################################
 # HORIZONTAL POD AUTOSCALER
 # Mirrors existing ASG CPU target tracking policy
 ############################################################
-
 hpa:
   enabled: true
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 60
-
 ############################################################
 # Liveness probe
 # Kubelet hits the health endpoint every 10 seconds. If it gets 3 consecutive failures, 
@@ -94,30 +85,23 @@ hpa:
 # If it fails, it does not restart anything -- it removes the pod from the Service's endpoint list, 
 # meaning the load balancer stops sending traffic to it. Once checks pass again, the pod is added back.
 ############################################################
-
 probes:
-
   liveness:
     path: /health
     initialDelaySeconds: 30
     periodSeconds: 10
     failureThreshold: 3
-
   readiness:
     path: /ready
     initialDelaySeconds: 15
     periodSeconds: 5
     failureThreshold: 3
-
 ############################################################
 # SERVICE ACCOUNT
 ############################################################
-
 serviceAccount:
   name: ehr-app
-
 ############################################################
 # NAMESPACE
 ############################################################
-
 namespace: ehr

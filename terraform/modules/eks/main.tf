@@ -29,10 +29,13 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true
     endpoint_public_access  = true
-
-    security_group_ids = [aws_security_group.cluster.id]
+    security_group_ids      = [aws_security_group.cluster.id]
   }
 
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
   ############################################################
   # Enable EKS control plane logging
   # Useful for auditing and debugging

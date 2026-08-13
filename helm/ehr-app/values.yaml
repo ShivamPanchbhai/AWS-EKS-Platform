@@ -8,8 +8,8 @@
 replicaCount: 2 # minimum two pods for high availability across app nodes
 image:
   # Placeholder - CI/CD pipeline overrides this with actual ECR URL and tag
-  repository: ""
-  tag: "449902341204c3accac07bc927ea8ef70d1b82d4"
+  repository: "306991549269.dkr.ecr.ap-south-1.amazonaws.com/ehr-service"
+  tag: "38b00eae484ef8885d28e673923d2a696eb728f6"
   pullPolicy: Always
 service:
   type: ClusterIP

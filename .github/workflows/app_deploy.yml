@@ -79,6 +79,7 @@ jobs:
       ########################################################
       - name: Update image tag in Helm values
         run: |
+          yq -i '.image.repository = "${{ steps.login-ecr.outputs.registry }}/ehr-service"' helm/ehr-app/values.yaml
           yq -i '.image.tag = "${{ github.sha }}"' helm/ehr-app/values.yaml
 
           git config user.name "github-actions[bot]"
